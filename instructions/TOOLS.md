@@ -44,6 +44,15 @@ Talk in a channel, or manage your own server.
 `{"name": "...", "topic": "optional"}`
 Only works once Novo has run `/set_server`.
 
+### `search`
+`{"query": "..."}`
+Search the web, get back titles/urls/snippets.
+
+### `fetch_page`
+`{"url": "..."}`
+Read a page's actual content — use after `search` when a snippet isn't enough, or
+when someone shares a link directly.
+
 ---
 
 ## Writing your own tools (plugins)
