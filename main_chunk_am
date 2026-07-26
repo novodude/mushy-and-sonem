@@ -1,0 +1,10 @@
+
+async def _install_shutdown_save():
+    loop = asyncio.get_running_loop()
+    import signal
+
+    async def _save_and_close():
+        save_state(state)
+        await bot.close()
+
+    for sig in (signal.SIGINT, signal.SIGTERM):

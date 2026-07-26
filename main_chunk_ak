@@ -1,0 +1,10 @@
+        f"🍄 got it — added to the pile! I'll take a look next time I'm working on myself.",
+        ephemeral=True,
+    )
+    state.log(f"suggestion from {interaction.user}: {feature}")
+
+
+@tree.command(name="set_server", description="(Novo only) set this server as Sonem's ai server")
+async def set_server(interaction: discord.Interaction):
+    if interaction.user.id != OWNER_DISCORD_ID:
+        await interaction.response.send_message("this one's not for you 🍄", ephemeral=True)

@@ -1,0 +1,10 @@
+            f"(message id: {message.id}, channel: #{message.channel.name if hasattr(message.channel, 'name') else 'DM'})\n"
+            f"{message.author.display_name}: {message.content}"
+        )
+
+        try:
+            response = await generate_response(
+                [{"role": "system", "content": system}, {"role": "user", "content": user_content}]
+            )
+        except AllModelsFailedError as e:
+            await message.channel.send("-# every model I've got is down (or I'm out of quota) right now, sorry :(")

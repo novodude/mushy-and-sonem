@@ -1,0 +1,10 @@
+        print(f"[main] couldn't set initial presence: {e}")
+    state.log(f"woke up as {bot.user}")
+    print(f"Logged in as {bot.user} (ID: {bot.user.id}) — self-improvement running continuously, no cooldown")
+
+
+@bot.event
+async def on_message(message: discord.Message):
+    if message.author == bot.user or bot.user is None:
+        return
+    if bot.user not in message.mentions:

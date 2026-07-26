@@ -1,0 +1,10 @@
+from core.tool_parser import parse_response, dispatch_tools
+from core.ai import generate_response, AllModelsFailedError
+from core.self_improvement import run_forever
+from core.paths import read as read_instruction
+
+load_dotenv()
+
+OWNER_DISCORD_ID = int(os.getenv("OWNER_DISCORD_ID", "951539463224451102"))
+TOKEN = os.getenv("DISCORD_TOKEN")
+
