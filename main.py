@@ -9,8 +9,9 @@ from dotenv import load_dotenv
 from core.persistence import load_state, save_state
 from core.tool_loader import load_tools
 from core.tool_parser import parse_response, dispatch_tools
-from core.ai import generate_response
-from core.self_improvement import self_improvement_loop, CYCLE_MINUTES
+from core.ai import generate_response, AllModelsFailedError
+from core.self_improvement import run_forever
+from core.paths import read as read_instruction
 
 load_dotenv()
 
@@ -25,27 +26,31 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 tree = bot.tree
 
 state = load_state()
-
-
-def _read(path: str) -> str:
-    with open(path, "r") as f:
-        return f.read()
+_self_improvement_task: asyncio.Task | None = None
 
 
 @tasks.loop(seconds=60)
 async def autosave_loop():
-    save_state(state)
+    try:
+        save_state(state)
+    except Exception as e:
+        print(f"[main] autosave failed: {e}")
 
 
 @bot.event
 async def on_ready():
+    global _self_improvement_task
     await tree.sync()
     if not autosave_loop.is_running():
         autosave_loop.start()
-    if not self_improvement_loop.is_running():
-        self_improvement_loop.start(bot, state)
+    if _self_improvement_task is None or _self_improvement_task.done():
+        _self_improvement_task = asyncio.create_task(run_forever(bot, state))
+    try:
+        await bot.change_presence(activity=discord.CustomActivity(name=state.status[:128]))
+    except Exception as e:
+        print(f"[main] couldn't set initial presence: {e}")
     state.log(f"woke up as {bot.user}")
-    print(f"Logged in as {bot.user} (ID: {bot.user.id}) — self-improvement cycle every {CYCLE_MINUTES} min")
+    print(f"Logged in as {bot.user} (ID: {bot.user.id}) — self-improvement running continuously, no cooldown")
 
 
 @bot.event
@@ -56,13 +61,14 @@ async def on_message(message: discord.Message):
         return
 
     async with message.channel.typing():
-        soul = _read("instructions/SOUL.md")
-        mission = _read("instructions/MISSION.md")
-        tools_doc = _read("instructions/TOOLS.md")
+        soul = read_instruction("instructions/SOUL.md")
+        mission = read_instruction("instructions/MISSION.md")
+        tools_doc = read_instruction("instructions/TOOLS.md")
 
         system = f"{soul}\n\n---\n\n{mission}\n\n---\n\n{tools_doc}"
         user_content = (
             f"**Status:** {state.status} | **Mood:** {state.mood}\n\n"
+            f"(message id: {message.id}, channel: #{message.channel.name if hasattr(message.channel, 'name') else 'DM'})\n"
             f"{message.author.display_name}: {message.content}"
         )
 
@@ -70,9 +76,9 @@ async def on_message(message: discord.Message):
             response = await generate_response(
                 [{"role": "system", "content": system}, {"role": "user", "content": user_content}]
             )
-        except Exception as e:
-            await message.channel.send("-# every model I've got is down right now, sorry :(")
-            state.log(f"chat generation failed: {e}")
+        except AllModelsFailedError as e:
+            await message.channel.send("-# every model I've got is down (or I'm out of quota) right now, sorry :(")
+            state.log(f"chat generation failed, all models exhausted: {e}")
             return
 
         text, tools = parse_response(response)

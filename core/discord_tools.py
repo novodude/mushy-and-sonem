@@ -11,6 +11,21 @@ import dotenv
 OWNER_DISCORD_ID = int(dotenv.get_key(".env", "OWNER_DISCORD_ID") or os.getenv("OWNER_DISCORD_ID") or 951539463224451102)
 
 
+async def h_set_status(params: dict, ctx) -> str:
+    """Updates what shows on Discord as her current activity. Call this whenever
+    what you're doing changes — this is how anyone (including Novo) can see what
+    you're up to without you having to DM about it."""
+    status = params.get("status")
+    if not status:
+        return "Need a status."
+    ctx.state.status = status
+    try:
+        await ctx.bot.change_presence(activity=discord.CustomActivity(name=status[:128]))
+    except Exception as e:
+        return f"Set internally but couldn't push to Discord: {e}"
+    return f"Status set to: {status}"
+
+
 async def h_message_dev(params: dict, ctx) -> str:
     """DMs Novo directly. Use this whenever you need something only he can give you —
     an API key, a permission, a decision — rather than guessing or blocking silently."""
@@ -35,6 +50,7 @@ async def h_send_message(params: dict, ctx) -> str:
         return f"Couldn't find channel '{channel_ref}'."
     try:
         msg = await channel.send(content[:2000])
+        _remember_last(ctx, channel.id, msg.id)
         return f"Sent in #{channel.name} (message id {msg.id})."
     except discord.HTTPException as e:
         return f"Couldn't send: {e}"
@@ -42,11 +58,11 @@ async def h_send_message(params: dict, ctx) -> str:
 
 async def h_edit_message(params: dict, ctx) -> str:
     channel_ref = params.get("channel")
-    message_id = params.get("message_id")
+    message_id = _resolve_message_id(ctx, channel_ref, params.get("message_id"))
     content = params.get("content", "")
     channel = _resolve_channel(ctx, channel_ref)
     if channel is None or not message_id:
-        return "Need a valid channel and message_id."
+        return "Need a valid channel and message_id (or \"last\" if you just sent something there)."
     try:
         msg = await channel.fetch_message(int(message_id))
         await msg.edit(content=content[:2000])
@@ -57,10 +73,10 @@ async def h_edit_message(params: dict, ctx) -> str:
 
 async def h_delete_message(params: dict, ctx) -> str:
     channel_ref = params.get("channel")
-    message_id = params.get("message_id")
+    message_id = _resolve_message_id(ctx, channel_ref, params.get("message_id"))
     channel = _resolve_channel(ctx, channel_ref)
     if channel is None or not message_id:
-        return "Need a valid channel and message_id."
+        return "Need a valid channel and message_id (or \"last\" if you just sent something there)."
     try:
         msg = await channel.fetch_message(int(message_id))
         await msg.delete()
@@ -84,6 +100,23 @@ async def h_create_channel(params: dict, ctx) -> str:
         return "I don't have permission to create channels there."
     except discord.HTTPException as e:
         return f"Couldn't create channel: {e}"
+
+
+def _remember_last(ctx, channel_id: int, message_id: int):
+    last = ctx.state.last_message_ids or {}
+    last[str(channel_id)] = message_id
+    ctx.state.last_message_ids = last
+
+
+def _resolve_message_id(ctx, channel_ref, message_id):
+    """Supports "last" as a stand-in for "the message I most recently sent in that
+    channel" — she doesn't always have a real snowflake handy, and guessing one is
+    worse than just naming what she means."""
+    channel = _resolve_channel(ctx, channel_ref)
+    if str(message_id).strip().lower() == "last" and channel is not None:
+        last = ctx.state.last_message_ids or {}
+        return last.get(str(channel.id))
+    return message_id
 
 
 def _ai_guild(ctx):

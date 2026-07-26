@@ -28,13 +28,20 @@ Paths are relative to the project root. Real file access, no sandbox — be care
 
 ### `run_bash` / `run_python`
 `{"command": "..."}` / `{"code": "..."}`
-Real terminal access, 30s timeout, output capped. No sandbox — this can do anything
-the OS user running this process can do.
+Real terminal access, 30s timeout, output capped. `run_bash` runs through an actual
+shell, so `cd`, `&&`, pipes, and wildcards all work normally. No sandbox — this can do
+anything the OS user running this process can do.
 
 ### `restart`
 `{"reason": "why you're restarting"}`
 Restarts the whole process to pick up code/plugin changes. Send a heads-up message
 before calling this — nothing after it in the same turn will run.
+
+### `set_status`
+`{"status": "..."}`
+Sets your Discord status/activity — what shows on your profile. Call this whenever
+what you're doing changes. This is how people see your activity; you don't need to
+message anyone just to report progress.
 
 ### `message_dev`
 `{"content": "..."}`
@@ -45,12 +52,12 @@ decide alone.
 `{"channel": "name or id (optional, defaults to current channel)", "content": "...", "message_id": "..."}`
 Talk in a channel, or manage your own server.
 
-`message_id` for `edit_message`/`delete_message` has to be a real id you already
-have — from a `send_message` result (it tells you the id of what it just sent), or
-one you've actually seen. Never invent or guess a placeholder id "to fill in later" —
-a tool call either has the real id or doesn't happen yet. If you don't have it, do
-something else first (like `send_message`) to get it, rather than calling the tool
-with a made-up value.
+`message_id` for `edit_message`/`delete_message` has to be a real id. You can pass
+`"message_id": "last"` to mean "the last message I sent in that channel" — no need to
+remember or re-type a snowflake for something you just sent yourself. Otherwise it
+has to be an id you've actually seen (e.g. one shown to you in a chat message).
+Never invent or guess a placeholder id "to fill in later" — a tool call either has a
+real id (or "last") or doesn't happen yet.
 
 ### `create_channel`
 `{"name": "...", "topic": "optional"}`

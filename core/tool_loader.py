@@ -18,7 +18,7 @@ import pkgutil
 from pathlib import Path
 
 from core.system_tools import h_vision, h_read_file, h_write_file, h_list_files, h_run_bash, h_run_python, h_restart
-from core.discord_tools import h_message_dev, h_send_message, h_edit_message, h_delete_message, h_create_channel
+from core.discord_tools import h_message_dev, h_send_message, h_edit_message, h_delete_message, h_create_channel, h_set_status
 from core.web_tools import h_search, h_fetch_page
 
 CORE_TOOLS = {
@@ -34,6 +34,7 @@ CORE_TOOLS = {
     "edit_message": h_edit_message,
     "delete_message": h_delete_message,
     "create_channel": h_create_channel,
+    "set_status": h_set_status,
     "search": h_search,
     "fetch_page": h_fetch_page,
 }

@@ -24,6 +24,12 @@ RETRIES_PER_MODEL = 2
 RETRY_BACKOFF_SECONDS = 2
 
 
+class AllModelsFailedError(Exception):
+    """Raised when every model in the fallback chain failed — whether that's an
+    actual quota/rate-limit exhaustion or every provider just being down. Either way
+    the right move is the same: stop hammering and back off for a while."""
+
+
 def _is_retryable(exc: Exception) -> bool:
     status = getattr(exc, "status_code", None)
     return status == 503 or status == 429 or status is None
@@ -33,7 +39,7 @@ async def generate_response(messages: list[dict], models: list[str] | None = Non
     """
     Try each model in `models` (defaults to MODEL_FALLBACKS) in order. Within each
     model, retry a couple times on 503/429 with a short backoff before moving on to
-    the next model. Raises the last error only if every model in the chain failed.
+    the next model. Raises AllModelsFailedError only if every model in the chain failed.
     """
     models = models or MODEL_FALLBACKS
     last_error: Exception | None = None
@@ -52,7 +58,7 @@ async def generate_response(messages: list[dict], models: list[str] | None = Non
                         break  # don't retry something like a 400 (bad request) — move to next model
                     await asyncio.sleep(RETRY_BACKOFF_SECONDS * (attempt + 1))
 
-    raise RuntimeError(f"All models in the fallback chain failed. Last error: {last_error}")
+    raise AllModelsFailedError(str(last_error))
 
 
 async def describe_image(image_url: str, question: str = "Describe this image.") -> str:

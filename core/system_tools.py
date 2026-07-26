@@ -10,7 +10,6 @@ only boundary that actually holds against a real shell.
 
 import asyncio
 import os
-import shlex
 import sys
 from pathlib import Path
 
@@ -86,15 +85,36 @@ async def _run_subprocess(*args: str, cwd: Path) -> str:
     return (result or "[no output]")[:MAX_OUTPUT_CHARS]
 
 
+async def _run_shell(command: str, cwd: Path) -> str:
+    try:
+        proc = await asyncio.create_subprocess_shell(
+            command, cwd=str(cwd),
+            stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
+        )
+        try:
+            stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=TIMEOUT_SECONDS)
+        except asyncio.TimeoutError:
+            proc.kill()
+            await proc.wait()
+            return f"[timed out after {TIMEOUT_SECONDS}s]"
+    except Exception as e:
+        return f"[failed to run: {e}]"
+
+    out = stdout.decode(errors="replace").strip()
+    err = stderr.decode(errors="replace").strip()
+    result = out
+    if err:
+        result += f"\n[stderr]\n{err}" if result else f"[stderr]\n{err}"
+    return (result or "[no output]")[:MAX_OUTPUT_CHARS]
+
+
 async def h_run_bash(params: dict, ctx) -> str:
     command = params.get("command", "")
     if not command:
         return "No command given."
-    try:
-        args = shlex.split(command)
-    except ValueError as e:
-        return f"Couldn't parse command: {e}"
-    return await _run_subprocess(*args, cwd=ROOT_DIR)
+    # Runs through an actual shell (not exec'd as a bare argv list) so cd, &&, pipes,
+    # globs, etc. all work the way you'd expect from typing this at a real terminal.
+    return await _run_shell(command, cwd=ROOT_DIR)
 
 
 async def h_run_python(params: dict, ctx) -> str:

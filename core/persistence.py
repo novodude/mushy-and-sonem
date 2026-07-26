@@ -17,10 +17,11 @@ DEFAULT_STATE = {
     "mood": "curious",
     "ai_server_id": None,
     "current_task": None,
-    "log": [],           # recent activity, newest last
+    "activity_log": [],  # recent activity, newest last — NOT named "log", that's the append method below
     "tools_added": [],   # names of plugin tools she's written for herself
     "suggestions": [],   # from /suggest, {by, text, done}
     "cycle_count": 0,
+    "last_message_ids": {},  # channel_id (str) -> last message id sent there, for the "last" sentinel
 }
 
 LOG_LIMIT = 200
@@ -42,10 +43,15 @@ class State:
             self._data[key] = value
 
     def log(self, entry: str):
+        """Appends to the activity log. Deliberately NOT readable as `state.log` —
+        that name is this method. Use `state.recent_log(n)` to read it back."""
         stamped = f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {entry}"
-        self._data.setdefault("log", []).append(stamped)
-        self._data["log"] = self._data["log"][-LOG_LIMIT:]
+        self._data.setdefault("activity_log", []).append(stamped)
+        self._data["activity_log"] = self._data["activity_log"][-LOG_LIMIT:]
         print(f"[sonem] {stamped}")
+
+    def recent_log(self, n: int = 15) -> list[str]:
+        return (self._data.get("activity_log") or [])[-n:]
 
     def add_suggestion(self, by: str, text: str):
         self._data.setdefault("suggestions", []).append({"by": by, "text": text, "done": False})
@@ -59,6 +65,8 @@ def load_state() -> State:
         try:
             with open(STATE_PATH, "r") as f:
                 data = json.load(f)
+            if "log" in data and "activity_log" not in data:
+                data["activity_log"] = data.pop("log")  # migrate pre-rename state files
             merged = {**DEFAULT_STATE, **data}
             return State(merged)
         except Exception as e:
