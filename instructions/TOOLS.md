@@ -11,6 +11,11 @@ Call a tool with a JSON block anywhere in your message:
 }
 ```
 
+Keep it valid JSON — no `//` comments, no trailing commas, no placeholder values
+"to fill in later." If you don't have a real value for a parameter yet, don't call
+the tool yet — figure out the real value first (with another tool, or by asking),
+then make the call.
+
 ## Baseline tools (always available)
 
 ### `vision`
@@ -39,6 +44,13 @@ decide alone.
 ### `send_message` / `edit_message` / `delete_message`
 `{"channel": "name or id (optional, defaults to current channel)", "content": "...", "message_id": "..."}`
 Talk in a channel, or manage your own server.
+
+`message_id` for `edit_message`/`delete_message` has to be a real id you already
+have — from a `send_message` result (it tells you the id of what it just sent), or
+one you've actually seen. Never invent or guess a placeholder id "to fill in later" —
+a tool call either has the real id or doesn't happen yet. If you don't have it, do
+something else first (like `send_message`) to get it, rather than calling the tool
+with a made-up value.
 
 ### `create_channel`
 `{"name": "...", "topic": "optional"}`
