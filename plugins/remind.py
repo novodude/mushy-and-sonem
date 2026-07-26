@@ -97,7 +97,13 @@ async def h_remind(params: dict, ctx) -> str:
     
     # Calculate time until reminder
     time_diff = reminder_time - datetime.now()
-    hours, remainder = divmod(time_diff.seconds, 3600)
+    total_seconds = int(time_diff.total_seconds())
+    
+    # Handle tiny time differences
+    if total_seconds < 60:
+        return "⏰ I'll remind you in less than a minute!"
+    
+    hours, remainder = divmod(total_seconds, 3600)
     minutes, _ = divmod(remainder, 60)
     
     time_str = ""
