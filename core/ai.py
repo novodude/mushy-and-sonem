@@ -15,12 +15,10 @@ ROUTER_BASE_URL = dotenv.get_key(".env", "ROUTER_BASE_URL") or "https://router.b
 # Tried in order. If a model 503s (overloaded) or otherwise fails, we fall through to
 # the next one rather than failing the whole turn.
 MODEL_FALLBACKS = [
-    "mistral-large",
-    "ling-3.0-flash-free",
-    "laguna-s-2.1",
+    "mistral-large"
 ]
 
-RETRIES_PER_MODEL = 2
+RETRIES_PER_MODEL = 3
 RETRY_BACKOFF_SECONDS = 2
 
 
@@ -30,33 +28,55 @@ class AllModelsFailedError(Exception):
     the right move is the same: stop hammering and back off for a while."""
 
 
-def _is_retryable(exc: Exception) -> bool:
-    status = getattr(exc, "status_code", None)
-    return status == 503 or status == 429 or status is None
-
-
-async def generate_response(messages: list[dict], models: list[str] | None = None) -> str:
-    """
-    Try each model in `models` (defaults to MODEL_FALLBACKS) in order. Within each
-    model, retry a couple times on 503/429 with a short backoff before moving on to
-    the next model. Raises AllModelsFailedError only if every model in the chain failed.
-    """
+async def generate_response(
+    messages: list[dict],
+    models: list[str] | None = None,
+) -> str:
     models = models or MODEL_FALLBACKS
     last_error: Exception | None = None
 
-    async with AsyncOpenAI(base_url=ROUTER_BASE_URL, api_key=NARA_API_KEY) as client:
+    async with AsyncOpenAI(
+        base_url=ROUTER_BASE_URL,
+        api_key=NARA_API_KEY,
+    ) as client:
         for model in models:
             for attempt in range(RETRIES_PER_MODEL):
                 try:
-                    res = await client.chat.completions.create(model=model, messages=messages)
+                    res = await client.chat.completions.create(
+                        model=model,
+                        messages=messages,
+                    )
                     return res.choices[0].message.content
-                except Exception as e:
-                    last_error = e
-                    status = getattr(e, "status_code", None)
-                    print(f"[ai] {model} attempt {attempt + 1} failed (status={status}): {e}")
-                    if not _is_retryable(e):
-                        break  # don't retry something like a 400 (bad request) — move to next model
-                    await asyncio.sleep(RETRY_BACKOFF_SECONDS * (attempt + 1))
+
+                except Exception as exc:
+                    last_error = exc
+                    status = getattr(exc, "status_code", None)
+
+                    print(
+                        f"[ai] {model} attempt {attempt + 1} "
+                        f"failed (status={status}): {exc}"
+                    )
+
+                    # Rate limit: don't waste more requests.
+                    if status == 429:
+                        await asyncio.sleep(
+                            RETRY_BACKOFF_SECONDS * (attempt + 1)
+                        )
+                        continue
+
+                    # Invalid/unavailable model: skip immediately.
+                    if status == 400:
+                        break
+
+                    # Only retry temporary overloads.
+                    if status == 503:
+                        await asyncio.sleep(
+                            RETRY_BACKOFF_SECONDS * (attempt + 1)
+                        )
+                        continue
+
+                    # Unknown errors: move to next model.
+                    break
 
     raise AllModelsFailedError(str(last_error))
 
