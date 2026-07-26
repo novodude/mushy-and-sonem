@@ -4,3 +4,5 @@ __pycache__/
 data/state.json
 workspace/*
 !workspace/.gitkeep
+amber-bot/
+.venv/
