@@ -1,64 +1,58 @@
 import os
-from typing import Optional
 
-def read_file_plus(path: str, start_line: Optional[int] = None, end_line: Optional[int] = None) -> str:
-    """
-    Reads a file and returns a nicely formatted string with:
-    - Line numbers
-    - Context lines before/after requested range
-    - Clear visual indicators for the requested range
-    - Graceful handling of edge cases
+def read_file_plus(path, start_line=None, end_line=None):
+    """Read a file with optional line range and formatting.
     
     Args:
-        path: Relative path to the file
-        start_line: First line to show (1-based, inclusive)
-        end_line: Last line to show (1-based, inclusive)
+        path: Path to the file
+        start_line: First line to show (1-based)
+        end_line: Last line to show (1-based)
         
     Returns:
-        Formatted string with file contents
+        Formatted string with file content and line numbers
     """
     try:
-        with open(path, 'r', encoding='utf-8') as f:
-            lines = f.readlines()
+        with open(path, 'r') as file:
+            lines = file.readlines()
     except FileNotFoundError:
         return f"❌ File not found: `{path}`"
     except Exception as e:
         return f"❌ Error reading file: {str(e)}"
-    
-    if not lines:
-        return f"📄 File: `{path}` (empty)"
-    
+
     total_lines = len(lines)
-    
-    # Handle default values and edge cases
-    if start_line is None:
+    if not lines:
+        return f"📂 File is empty: `{path}`"
+
+    # Handle line range (1-based indexing)
+    if start_line is not None:
+        start_line = max(1, start_line)
+    else:
         start_line = 1
-    if end_line is None:
+
+    if end_line is not None:
+        end_line = min(total_lines, end_line)
+    else:
         end_line = total_lines
-    
-    # Convert to 0-based indices and clamp to valid range
-    start_idx = max(0, min(start_line - 1, total_lines - 1))
-    end_idx = max(0, min(end_line - 1, total_lines - 1))
-    
-    # Include 2 lines of context before/after if possible
-    context_start = max(0, start_idx - 2)
-    context_end = min(total_lines - 1, end_idx + 2)
-    
-    # Build the output
-    header = f"📄 File: `{path}` (showing lines {start_line}-{end_line} of {total_lines})"
-    separator = "────────────────────────────────────────"
-    
-    output = [header, separator]
-    
-    for i in range(context_start, context_end + 1):
+
+    # Get context lines (2 lines before and after)
+    context_start = max(1, start_line - 2)
+    context_end = min(total_lines, end_line + 2)
+
+    # Prepare output
+    output = []
+    output.append(f"📄 File: `{path}` (showing lines {start_line}-{end_line} of {total_lines})")
+    output.append("════════════════════════════════════════")
+
+    for i in range(context_start - 1, context_end):
         line_num = i + 1
-        line_content = lines[i].rstrip()
-        
-        # Mark the requested range with >>>
-        if start_idx <= i <= end_idx:
-            output.append(f">>> {line_num:4d}: {line_content}")
+        if start_line <= line_num <= end_line:
+            prefix = "➤ "  # Main content lines
+        elif line_num < start_line:
+            prefix = "↑ "  # Context lines before
         else:
-            output.append(f"    {line_num:4d}: {line_content}")
-    
-    output.append(separator)
-    return '\n'.join(output)
+            prefix = "↓ "  # Context lines after
+        
+        output.append(f"{prefix}{line_num:4d}: {lines[i].rstrip()}")
+
+    output.append("════════════════════════════════════════")
+    return "\n".join(output)
