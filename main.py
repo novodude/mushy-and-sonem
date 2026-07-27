@@ -69,7 +69,7 @@ async def on_message(message: discord.Message):
         tools_doc = read_instruction("instructions/TOOLS.md")
         commands_doc = read_instruction("instructions/COMMANDS.md")
 
-        system = f"{soul}\n\n---\n\n{mission}\n\n---\n\n{tools_doc}\n\n---\n\n{commands_doc}"
+        system = f"{soul}\n\n---\n\n{mission}\n\n---\n\n{commands_doc}"
         user_content = (
             f"**Status:** {state.status} | **Mood:** {state.mood}\n\n"
             f"(message id: {message.id}, channel: #{message.channel.name if hasattr(message.channel, 'name') else 'DM'})\n"
