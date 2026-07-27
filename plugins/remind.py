@@ -8,97 +8,82 @@ from discord.ext import tasks
 # File to store reminders
 REMINDERS_FILE = "data/reminders.json"
 
-# Ensure data directory exists
-os.makedirs(os.path.dirname(REMINDERS_FILE), exist_ok=True)
-
 # Load reminders from file
 def load_reminders():
-    try:
-        if os.path.exists(REMINDERS_FILE):
-            with open(REMINDERS_FILE, 'r') as f:
-                return json.load(f)
-    except Exception as e:
-        print(f"Error loading reminders: {e}")
-    return []
+    if not os.path.exists(REMINDERS_FILE):
+        return []
+    with open(REMINDERS_FILE, 'r') as f:
+        return json.load(f)
 
 # Save reminders to file
 def save_reminders(reminders):
-    try:
-        with open(REMINDERS_FILE, 'w') as f:
-            json.dump(reminders, f, indent=2)
-    except Exception as e:
-        print(f"Error saving reminders: {e}")
-
-async def h_remind(params: dict, ctx) -> str:
-    """Set a reminder. Parameters: time (str), message (str)"""
-    time_str = params.get("time", "")
-    message = params.get("message", "")
-    
-    if not time_str or not message:
-        return "Please provide both a time and a message for the reminder."
-    
-    # Parse the time using parsedatetime
-    cal = pdt.Calendar()
-    time_struct, parse_status = cal.parse(time_str)
-    
-    if not parse_status:
-        return f"Couldn't understand the time: '{time_str}'. Try something like 'in 1 hour' or 'tomorrow at 3pm'."
-    
-    # Convert to datetime
-    reminder_time = datetime(*time_struct[:6])
-    
-    # Check if the time is in the past
-    if reminder_time < datetime.now():
-        return "That time is in the past! Please specify a future time for your reminder."
-    
-    # Calculate time until reminder
-    time_until = reminder_time - datetime.now()
-    
-    # Create reminder object
-    reminder = {
-        "user_id": ctx.message.author.id,
-        "channel_id": ctx.message.channel.id,
-        "time": reminder_time.isoformat(),
-        "message": message
-    }
-    
-    # Load existing reminders
-    reminders = load_reminders()
-    reminders.append(reminder)
-    save_reminders(reminders)
-    
-    return f"Okay! I'll remind you about '{message}' in {time_until.total_seconds()//60} minutes (at {reminder_time.strftime('%Y-%m-%d %H:%M')})."
+    with open(REMINDERS_FILE, 'w') as f:
+        json.dump(reminders, f, indent=2)
 
 # Background task to check reminders
-@tasks.loop(minutes=1)
+@tasks.loop(minutes=1.0)
 async def check_reminders(bot):
     reminders = load_reminders()
     now = datetime.now()
-    updated_reminders = []
     
-    for reminder in reminders:
-        reminder_time = datetime.fromisoformat(reminder["time"])
+    for reminder in reminders[:]:  # Iterate over a copy to allow modification
+        reminder_time = datetime.fromisoformat(reminder['time'])
+        
+        # Check if it's time to send this reminder (now or in the past)
         if reminder_time <= now:
-            # Send reminder
-            user = bot.get_user(reminder["user_id"])
-            channel = bot.get_channel(reminder["channel_id"]) if reminder["channel_id"] else None
-            
-            if user:
-                try:
-                    if channel:
-                        await channel.send(f"{user.mention}, reminder: {reminder['message']}")
+            try:
+                user = await bot.get_user(reminder['user_id'])
+                if user:
+                    channel = None
+                    if reminder['channel_id']:
+                        channel = await bot.get_channel(reminder['channel_id'])
+                    
+                    # Send to DM if no channel or channel not found
+                    if not channel:
+                        await user.send(f"🔔 Reminder: {reminder['message']}")
                     else:
-                        await user.send(f"Reminder: {reminder['message']}")
-                except Exception as e:
-                    print(f"Error sending reminder: {e}")
-        else:
-            updated_reminders.append(reminder)
+                        await channel.send(f"{user.mention} 🔔 Reminder: {reminder['message']}")
+                
+                # Remove the reminder after sending
+                reminders.remove(reminder)
+            except Exception as e:
+                print(f"Error sending reminder: {e}")
     
-    # Save updated reminders (without the ones we just sent)
-    save_reminders(updated_reminders)
+    save_reminders(reminders)
 
-# Start the background task when the bot is ready
+# Setup function to start the background task
 async def setup(bot):
     check_reminders.start(bot)
+
+# Tool handler for setting reminders
+async def h_remind(params: dict, ctx) -> str:
+    try:
+        text = params.get('text', '')
+        
+        # Parse time from natural language
+        cal = pdt.Calendar()
+        time_struct, parse_status = cal.parse(text)
+        
+        if not parse_status:
+            return "Couldn't understand the time in your reminder. Try something like 'in 5 minutes' or 'tomorrow at 3pm'."
+        
+        reminder_time = datetime(*time_struct[:6])
+        
+        # Create reminder object
+        reminder = {
+            'user_id': ctx.message.author.id,
+            'channel_id': ctx.message.channel.id if hasattr(ctx.message.channel, 'id') else None,
+            'time': reminder_time.isoformat(),
+            'message': text.split(' ', 1)[1] if ' ' in text else 'Reminder!'
+        }
+        
+        # Save reminder
+        reminders = load_reminders()
+        reminders.append(reminder)
+        save_reminders(reminders)
+        
+        return f"Okay! I'll remind you at {reminder_time.strftime('%Y-%m-%d %H:%M')}"
+    except Exception as e:
+        return f"Oops! Something went wrong: {str(e)}"
 
 TOOLS = {"remind": h_remind}
