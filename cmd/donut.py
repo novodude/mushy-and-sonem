@@ -7,9 +7,12 @@ import asyncio
 import math
 import discord
 from discord.ext import commands
+from discord import app_commands
 
 async def donut_setup(bot: commands.Bot):
     @bot.tree.command(name="donut", description="Watch a spinning ASCII donut!")
+    @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
+    @app_commands.allowed_installs(guilds=True, users=True)
     async def donut_command(interaction: discord.Interaction):
         """Spinning donut animation!"""
         await interaction.response.defer(thinking=True)
