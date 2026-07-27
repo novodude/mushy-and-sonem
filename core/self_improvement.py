@@ -86,12 +86,13 @@ def _build_prompt(state: State) -> list[dict]:
     soul = read_instruction("instructions/SOUL.md")
     mission = read_instruction("instructions/MISSION.md")
     tools_doc = read_instruction("instructions/TOOLS.md")
+    commands_doc = read_instruction("instructions/COMMANDS.md")
 
     pending = [s for s in (state.suggestions or []) if not s.get("done")]
     suggestions_text = "\n".join(f"- (from {s['by']}): {s['text']}" for s in pending[:10]) or "(none pending)"
     log_tail = "\n".join(state.recent_log(15)) or "(nothing logged yet)"
 
-    system = f"{soul}\n\n---\n\n{mission}\n\n---\n\n{tools_doc}"
+    system = f"{soul}\n\n---\n\n{mission}\n\n---\n\n{tools_doc}\n\n---\n\n{commands_doc}"
     user = (
         f"## Self-improvement cycle {state.cycle_count}\n\n"
         f"**Status:** {state.status}\n"

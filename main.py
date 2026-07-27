@@ -13,6 +13,8 @@ from core.ai import generate_response, AllModelsFailedError
 from core.self_improvement import run_forever
 from core.paths import read as read_instruction
 
+from commands import commands_setup
+
 load_dotenv()
 
 OWNER_DISCORD_ID = int(os.getenv("OWNER_DISCORD_ID", "951539463224451102"))
@@ -40,6 +42,7 @@ async def autosave_loop():
 @bot.event
 async def on_ready():
     global _self_improvement_task
+    await commands_setup(bot)
     await tree.sync()
     if not autosave_loop.is_running():
         autosave_loop.start()
@@ -64,8 +67,9 @@ async def on_message(message: discord.Message):
         soul = read_instruction("instructions/SOUL.md")
         mission = read_instruction("instructions/MISSION.md")
         tools_doc = read_instruction("instructions/TOOLS.md")
+        commands_doc = read_instruction("instructions/COMMANDS.md")
 
-        system = f"{soul}\n\n---\n\n{mission}\n\n---\n\n{tools_doc}"
+        system = f"{soul}\n\n---\n\n{mission}\n\n---\n\n{tools_doc}\n\n---\n\n{commands_doc}"
         user_content = (
             f"**Status:** {state.status} | **Mood:** {state.mood}\n\n"
             f"(message id: {message.id}, channel: #{message.channel.name if hasattr(message.channel, 'name') else 'DM'})\n"

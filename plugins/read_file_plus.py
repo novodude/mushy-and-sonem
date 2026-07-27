@@ -1,6 +1,6 @@
 import os
 
-def read_file_plus(path, start_line=None, end_line=None):
+def h_read_file_plus(path, start_line=None, end_line=None):
     """Read a file with optional line range and improved formatting.
 
     Args:
@@ -59,3 +59,6 @@ def read_file_plus(path, start_line=None, end_line=None):
 
     output.append("─" * 50)
     return '\n'.join(output)
+
+
+TOOLS = {"read_file_plus": h_read_file_plus}

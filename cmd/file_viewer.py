@@ -49,5 +49,5 @@ class FileViewer(commands.Cog):
             
         await interaction.response.send_message(content)
 
-async def setup(bot):
+async def FileViewer_setup(bot):
     await bot.add_cog(FileViewer(bot))
