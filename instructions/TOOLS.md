@@ -23,10 +23,6 @@ Look at an image.
 `{"path": "relative/path.py"}` (write_file also takes `"content"`)
 Paths are relative to the project root. Real file access, no sandbox — be careful.
 
-### `read_file_plus`
-
-`{"path": "relative/path.py", "start_line": 10, "end_line": 20}`
-
 ### `run_bash` / `run_python`
 
 `{"command": "..."}` / `{"code": "..."}`
