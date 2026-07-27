@@ -8,129 +8,83 @@ from discord.ext import tasks
 # File to store reminders
 REMINDERS_FILE = "data/reminders.json"
 
-# Ensure data directory exists
-os.makedirs("data", exist_ok=True)
+# Create data directory if it doesn't exist
+os.makedirs(os.path.dirname(REMINDERS_FILE), exist_ok=True)
 
 # Load reminders from file
-def load_reminders():
+async def load_reminders():
     if not os.path.exists(REMINDERS_FILE):
         return []
-    try:
-        with open(REMINDERS_FILE, "r") as f:
-            return json.load(f)
-    except (json.JSONDecodeError, IOError):
-        return []
+    with open(REMINDERS_FILE, 'r') as f:
+        return json.load(f)
 
 # Save reminders to file
-def save_reminders(reminders):
-    try:
-        with open(REMINDERS_FILE, "w") as f:
-            json.dump(reminders, f, indent=2)
-    except IOError as e:
-        print(f"Error saving reminders: {e}")
+async def save_reminders(reminders):
+    with open(REMINDERS_FILE, 'w') as f:
+        json.dump(reminders, f)
 
-# Parse time string into datetime
-async def parse_time(time_str):
-    cal = pdt.Calendar()
-    time_struct, parse_status = cal.parse(time_str)
-    if parse_status:
-        return datetime(*time_struct[:6])
-    return None
-
-# Check and send reminders
+# Reminder task function
 async def check_reminders(bot):
-    reminders = load_reminders()
+    reminders = await load_reminders()
     now = datetime.now()
-    updated_reminders = []
-    for reminder in reminders:
-        reminder_time = datetime.fromisoformat(reminder["time"])
+    
+    for reminder in reminders[:]:
+        reminder_time = datetime.fromisoformat(reminder['time'])
         if reminder_time <= now:
             try:
-                channel = bot.get_channel(int(reminder["channel_id"]))
+                channel = bot.get_channel(reminder['channel_id'])
                 if channel:
-                    await channel.send(f"<@{reminder['user_id']}> Reminder: {reminder['message']}")
-                else:
-                    print(f"Couldn't find channel {reminder['channel_id']} for reminder")
+                    await channel.send(f"🔔 Reminder for <@{reminder['user_id']}>: {reminder['message']}")
+                reminders.remove(reminder)
             except Exception as e:
                 print(f"Error sending reminder: {e}")
-        else:
-            updated_reminders.append(reminder)
-    save_reminders(updated_reminders)
+    
+    await save_reminders(reminders)
 
-# Background task to check reminders
-@tasks.loop(minutes=1)
-async def reminder_task(bot):
-    await check_reminders(bot)
-
-# Set a reminder
+# Handle remind command
 async def h_remind(params: dict, ctx) -> str:
-    time_str = params.get("time", "")
-    message = params.get("message", "")
-    if not time_str or not message:
-        return "Please provide both time and message! Example: `remind 1 hour Do the thing`"
-
-    reminder_time = await parse_time(time_str)
-    if not reminder_time:
-        return "Couldn't understand that time format! Try something like 'in 1 hour' or 'tomorrow at 3pm'"
-
-    reminders = load_reminders()
-    reminders.append({
-        "user_id": str(ctx.message.author.id),
-        "time": reminder_time.isoformat(),
-        "message": message,
-        "channel_id": str(ctx.message.channel.id)
-    })
-    save_reminders(reminders)
-
-    if not reminder_task.is_running():
-        reminder_task.start(ctx.bot)
-
-    return f"I'll remind you about '{message}' at {reminder_time.strftime('%Y-%m-%d %H:%M:%S')}!"
-
-# List all reminders for a user
-async def h_list_reminders(params: dict, ctx) -> str:
-    reminders = load_reminders()
-    user_reminders = [r for r in reminders if r["user_id"] == str(ctx.message.author.id)]
-    if not user_reminders:
-        return "You have no reminders set!"
-
-    response = "Your reminders:\n"
-    for i, reminder in enumerate(user_reminders, 1):
-        reminder_time = datetime.fromisoformat(reminder["time"])
-        response += f"{i}. {reminder['message']} at {reminder_time.strftime('%Y-%m-%d %H:%M:%S')}\n"
-    return response
-
-# Delete a reminder
-async def h_delete_reminder(params: dict, ctx) -> str:
-    index = params.get("index")
-    if index is None:
-        return "Please provide a reminder index to delete! Example: `delete_reminder 1`"
-
     try:
-        index = int(index) - 1
-    except ValueError:
-        return "Index must be a number!"
+        cal = pdt.Calendar()
+        time_text = ' '.join(params.get('args', []))
+        
+        # Parse time
+        time_struct, parse_status = cal.parse(time_text)
+        if not parse_status:
+            return "I couldn't understand that time format. Try something like '1 hour' or 'tomorrow at 3pm'"
+        
+        reminder_time = datetime(*time_struct[:6])
+        if reminder_time < datetime.now():
+            return "That time is in the past! Try a future time."
+        
+        # Get message (everything after time)
+        message_start = len(' '.join(params.get('time_words', [])))
+        message = time_text[message_start:].strip()
+        if not message:
+            return "You need to tell me what to remind you about!"
+        
+        # Save reminder
+        reminders = await load_reminders()
+        reminders.append({
+            'user_id': ctx.message.author.id,
+            'channel_id': ctx.message.channel.id,
+            'time': reminder_time.isoformat(),
+            'message': message
+        })
+        await save_reminders(reminders)
+        
+        return f"Okay! I'll remind you about '{message}' at {reminder_time.strftime('%Y-%m-%d %H:%M')}"
+    except Exception as e:
+        return f"Something went wrong: {e}"
 
-    reminders = load_reminders()
-    user_reminders = [r for r in reminders if r["user_id"] == str(ctx.message.author.id)]
-    if not user_reminders or index < 0 or index >= len(user_reminders):
-        return "Invalid reminder index!"
-
-    # Find the actual index in the full list
-    user_reminder = user_reminders[index]
-    full_index = reminders.index(user_reminder)
-    del reminders[full_index]
-    save_reminders(reminders)
-    return "Reminder deleted!"
-
-# Initialize the task when the bot starts
+# Plugin setup function
 async def setup(bot):
-    reminders = load_reminders()
-    if reminders and not reminder_task.is_running():
-        reminder_task.start(bot)
+    # Create and start the task
+    reminder_task = tasks.loop(minutes=1.0)(check_reminders)
+    reminder_task.bot = bot
+    reminder_task.start()
+    print("Reminder task started")
+    
+    # Store the task in the bot for reference
+    bot.reminder_task = reminder_task
 
-TOOLS = {
-    "remind": h_remind,
-    "list_reminders": h_list_reminders,
-    "delete_reminder": h_delete_reminder
-}
+TOOLS = {"remind": h_remind}
