@@ -5,6 +5,7 @@ Spinning donut command for Sonem!
 
 import asyncio
 import math
+import time
 import discord
 from discord.ext import commands
 from discord import app_commands
@@ -16,7 +17,8 @@ async def donut_setup(bot: commands.Bot):
     async def donut_command(interaction: discord.Interaction):
         """Spinning donut animation!"""
         await interaction.response.defer(thinking=True)
-        
+        start_time = time.time()
+        MAX_RUNTIME = 300  # seconds
         # Classic donut math from https://www.a1k0n.net/2011/07/20/donut-math.html
         A = 0
         B = 0
@@ -29,7 +31,7 @@ async def donut_setup(bot: commands.Bot):
         msg = await interaction.followup.send("🍩 Spinning donut...\n```")
         
         try:
-            while True:
+            while time.time() - start_time < MAX_RUNTIME:
                 # Reset buffers
                 for i in range(1760):
                     z[i] = 0

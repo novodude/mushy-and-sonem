@@ -1,6 +1,6 @@
 import os
 
-def h_read_file_plus(path, start_line=None, end_line=None):
+def h_read_file_plus(params: dict, ctx):
     """Read a file with optional line range and improved formatting.
 
     Args:
@@ -11,6 +11,10 @@ def h_read_file_plus(path, start_line=None, end_line=None):
     Returns:
         Formatted string with line numbers, context, and clear visual separation
     """
+    path= params.get("path")
+    start_line= params.get("start_line")
+    end_line= params.get("end_line")
+
     try:
         with open(path, 'r') as f:
             lines = f.readlines()
@@ -62,3 +66,4 @@ def h_read_file_plus(path, start_line=None, end_line=None):
 
 
 TOOLS = {"read_file_plus": h_read_file_plus}
+
