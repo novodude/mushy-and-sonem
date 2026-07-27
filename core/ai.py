@@ -15,7 +15,9 @@ ROUTER_BASE_URL = dotenv.get_key(".env", "ROUTER_BASE_URL") or "https://router.b
 # Tried in order. If a model 503s (overloaded) or otherwise fails, we fall through to
 # the next one rather than failing the whole turn.
 MODEL_FALLBACKS = [
-    "mistral-large"
+    "mistral-large",
+    "nemotron-3-ultra",
+    "laguna-s-2.1"
 ]
 
 RETRIES_PER_MODEL = 3
