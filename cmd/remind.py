@@ -41,13 +41,13 @@ async def remind_setup(bot):
         
         # Check if time is in the past
         if parsed_time < datetime.now():
-            await interaction.followup.send("❌ That time is in the past! I can't remind you about something that already happened.")
+            await interaction.followup.send("❌ Oops! That time is in the past. Maybe try something in the future? I'd love to help you remember!")
             return
         
         # Check 1-year max limit
         max_time = datetime.now() + timedelta(days=365)
         if parsed_time > max_time:
-            await interaction.followup.send("❌ I can only set reminders up to 1 year in the future! (That's a *long* time for a little mushroom to remember...)")
+            await interaction.followup.send("❌ Oh no! I can only set reminders up to 1 year in the future. (That's a *long* time for a little mushroom brain to remember... 🍄)")
             return
         
         # Calculate delay
