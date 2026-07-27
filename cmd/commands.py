@@ -7,3 +7,5 @@ async def commands_setup(bot):
     
     await choose_setup(bot)
     await poll_setup(bot)
+    from cmd.remind import remind_setup
+    await remind_setup(bot)
