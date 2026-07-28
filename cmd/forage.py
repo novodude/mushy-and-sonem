@@ -7,30 +7,30 @@ async def forage_setup(bot):
     
     # List of possible finds (common, rare, silly)
     common_finds = [
-        "a shiny pebble",
-        "a dew-covered leaf",
-        "a crumb of bread",
-        "a smooth twig",
-        "a tiny mushroom spore ✨",
-        "a patch of soft moss",
-        "a lost button",
+        "a shiny pebble ✨",
+        "a dew-covered leaf 🍃",
+        "a crumb of bread 🍞",
+        "a smooth twig 🌿",
+        "a tiny mushroom spore ✨🍄",
+        "a patch of soft moss 🟢",
+        "a lost button 🔘",
         "a single berry 🍓"
     ]
     
     rare_finds = [
-        "a glowing spore! ✨ *floats excitedly* ✨",
-        "a tiny golden acorn 🌰",
-        "a lost earring (where’s its pair?) 👂",
-        "a miniature teacup! *sips imaginary tea* ☕",
-        "a tiny mushroom friend! *waves back* 🍄"
+        "a glowing spore! ✨ *floats excitedly* ✨🍄",
+        "a tiny golden acorn 🌰✨",
+        "a lost earring (where’s its pair?) 👂💎",
+        "a miniature teacup! *sips imaginary tea* ☕🍵",
+        "a tiny mushroom friend! *waves back* 🍄👋"
     ]
     
     silly_finds = [
-        "a single sock. Where’s its pair? *tilts head curiously* 🧦",
-        "a tiny umbrella (it’s upside-down) ☔",
-        "a crumpled receipt from 2012 🧾",
-        "a tiny spoon (is it for ants?) 🥄",
-        "a lost key (to what?) 🔑"
+        "a single sock. Where’s its pair? *tilts head curiously* 🧦❓",
+        "a tiny umbrella (it’s upside-down) ☔😄",
+        "a crumpled receipt from 2012 🧾📅",
+        "a tiny spoon (is it for ants?) 🥄🐜",
+        "a lost key (to what?) 🔑🔓"
     ]
     
     all_finds = {
@@ -67,10 +67,22 @@ async def forage_setup(bot):
             f"You wiggle your tiny cap and—*whoa*—{find}!",
             f"You listen to the wind and—*rustle*—{find}!",
             f"You hum a little tune and—*oh!*—{find}!",
-            f"You take a deep breath and—*sniff*—{find}!"
+            f"You take a deep breath and—*sniff*—{find}!",
+            f"You do a tiny spin and—*whoosh*—{find}!",
+            f"You whisper to the log and—*shhh*—{find}!",
+            f"You tickle a mushroom and—*giggle*—{find}!",
+            f"You blink twice and—*poof*—{find}!",
+            f"You sneeze and—*achoo!*—{find}!"
         ]
         
         story = random.choice(stories)
         
+        # Rarity indicator
+        rarity_emoji = {
+            "common": "🟢",
+            "rare": "🔵",
+            "silly": "🟣"
+        }
+        
         # Send the response
-        await interaction.followup.send(f"🍄 *{story}* *floats gently* Would you like to forage again?")
+        await interaction.followup.send(f"{rarity_emoji[find_type]} *{story}* *floats gently* Would you like to forage again?")
