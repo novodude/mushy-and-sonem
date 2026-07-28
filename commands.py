@@ -12,6 +12,7 @@ from cmd.fact import fact_setup
 from cmd.forage import forage_setup
 from cmd.spore import spore_setup
 from cmd.mushroom import mushroom_setup
+from cmd.cozy_sounds import cozy_sounds_setup
 
 
 async def commands_setup(bot):
@@ -29,3 +30,4 @@ async def commands_setup(bot):
     await forage_setup(bot)
     await spore_setup(bot)
     await mushroom_setup(bot)
+    await cozy_sounds_setup(bot)
