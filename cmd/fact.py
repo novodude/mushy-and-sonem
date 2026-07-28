@@ -54,6 +54,18 @@ facts = {
     ]
 }
 
+# Tiny *bonus* facts (rare and extra fun!)
+bonus_facts = [
+    "Some mushrooms can *eat* radiation and turn it into food—like tiny superheroes! 🍄☢️",
+    "The mycelium network can stretch for miles underground—like a tiny internet for plants! 🌐🍄",
+    "Mushrooms can "talk" to each other using chemical signals—like tiny whispers in the dark! 🗣️🌑",
+    "Some mushrooms can *digest* rocks to get nutrients—tiny but mighty miners! ⛏️🍄",
+    "The oldest mushroom fossil is over 400 million years old—tiny but ancient! 🦕🍄",
+    "Mushrooms can help trees survive droughts by sharing water through their mycelium—like tiny lifelines! 💧🌳",
+    "Some mushrooms can *glow* so brightly that people used them as lanterns in the past! 🔦🍄",
+    "Mushrooms can break down toxic chemicals—like tiny cleanup crews for the planet! 🌍🍄"
+]
+
 async def fact_setup(bot):
     @bot.tree.command(name="fact", description="Get a tiny fact about mushrooms, space, animals, or silly history!")
     @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
@@ -82,4 +94,9 @@ async def fact_setup(bot):
             "silly": "🤪"
         }
         
-        await interaction.followup.send(f"{emojis.get(category, '✨')} **Tiny fact!** {fact_text}")
+        # 10% chance to get a *bonus* fact!
+        if random.random() < 0.1:
+            bonus_text = random.choice(bonus_facts)
+            await interaction.followup.send(f"{emojis.get(category, '✨')} **Tiny fact!** {fact_text}\n\n🌟 **Bonus fact!** {bonus_text}")
+        else:
+            await interaction.followup.send(f"{emojis.get(category, '✨')} **Tiny fact!** {fact_text}")
