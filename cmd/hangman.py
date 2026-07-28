@@ -100,36 +100,22 @@ async def hangman_setup(bot):
         # Create view with letter buttons
         view = View(timeout=None)
         
-        # Add buttons in rows (A-M, N-Z)
-        for i, letter in enumerate('ABCDEFGHIJKLM'):
+        # Add buttons in rows (A-M, N-Z) - FIXED: no nested View!
+        for letter in 'ABCDEFGHIJKLM':
             view.add_item(LetterButton(letter))
         
-        row2 = View()
         for letter in 'NOPQRSTUVWXYZ':
-            row2.add_item(LetterButton(letter))
-        view.add_item(row2)
+            view.add_item(LetterButton(letter))
         
         # Store game state
-        active_games[interaction.message.id] = {
+        message = await interaction.response.send_message(
+            f"**Hangman!**\nWord: {' '.join(guessed)}\nMistakes: 0/6\n\n  +---+\n  |   |\n      |\n      |\n      |\n      |\n=========",
+            view=view
+        )
+        
+        active_games[message.id] = {
             'word': word,
             'guessed': guessed,
             'mistakes': 0,
             'player': interaction.user.id
         }
-        
-        # Initial message
-        hangman_art = [
-            "  +---+",
-            "  |   |",
-            "      |",
-            "      |",
-            "      |",
-            "      |",
-            "========="
-        ]
-        hangman_display = '\n'.join(hangman_art)
-        
-        await interaction.response.send_message(
-            f"**Hangman!**\nWord: {' '.join(guessed)}\nMistakes: 0/6\n\n{hangman_display}",
-            view=view
-        )
