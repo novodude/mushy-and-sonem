@@ -6,6 +6,7 @@ from cmd.choose import choose_setup
 from cmd.donut import donut_setup
 from cmd.remind import remind_setup
 from cmd.eightball import eightball_setup
+import cmd.commands as cmd
 
 async def commands_setup(bot):
     await roll_setup(bot)
@@ -14,3 +15,4 @@ async def commands_setup(bot):
     await donut_setup(bot)
     await remind_setup(bot)
     await eightball_setup(bot)
+    await cmd.commands_setup(bot)
