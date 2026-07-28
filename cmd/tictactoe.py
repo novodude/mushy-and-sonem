@@ -88,7 +88,8 @@ async def end_game(interaction: discord.Interaction, winner):
         result = "It's a tie!"
     
     await interaction.response.edit_message(content=f"Game over! {result}", view=interaction.message.components[0])
-    del active_games[interaction.message.id]
+    if interaction.message.id in active_games:
+        del active_games[interaction.message.id]
 
 async def tictactoe_setup(bot):
     @bot.tree.command(name="tictactoe", description="Play a game of Tic-Tac-Toe!")
@@ -104,10 +105,11 @@ async def tictactoe_setup(bot):
             for x in range(3):
                 view.add_item(TicTacToeButton(x, y))
         
-        # Store game state
-        active_games[interaction.message.id] = {
+        # Send initial message and store game state
+        message = await interaction.response.send_message("Let's play Tic-Tac-Toe! You're O, I'm X.", view=view)
+        
+        # Store game state with the message ID
+        active_games[message.id] = {
             'board': board,
             'player2': interaction.user.id
         }
-        
-        await interaction.response.send_message("Let's play Tic-Tac-Toe! You're O, I'm X.", view=view)
