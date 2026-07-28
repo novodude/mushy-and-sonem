@@ -7,6 +7,7 @@ from cmd.tictactoe import tictactoe_setup
 from cmd.hangman import hangman_setup
 from cmd.flip import flip_setup
 from cmd.hug import hug_setup
+from cmd.quote_image import quote_image_setup
 
 
 async def commands_setup(bot):
@@ -19,3 +20,4 @@ async def commands_setup(bot):
     await hangman_setup(bot)
     await flip_setup(bot)
     await hug_setup(bot)
+    await quote_image_setup(bot)
