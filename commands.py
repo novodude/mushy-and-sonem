@@ -16,6 +16,7 @@ from cmd.cozy_sounds import cozy_sounds_setup
 
 
 async def commands_setup(bot):
+    print("DEBUG: commands_setup called! Starting to load commands...")  # <-- Added debug print
     await roll_setup(bot)
     await choose_setup(bot)
     await donut_setup(bot)
@@ -25,9 +26,12 @@ async def commands_setup(bot):
     await hangman_setup(bot)
     await flip_setup(bot)
     await hug_setup(bot)
+    print("DEBUG: About to call quote_image_setup...")  # <-- Added debug print
     await quote_image_setup(bot)
+    print("DEBUG: quote_image_setup completed!")  # <-- Added debug print
     await fact_setup(bot)
     await forage_setup(bot)
     await spore_setup(bot)
     await mushroom_setup(bot)
     await cozy_sounds_setup(bot)
+    print("DEBUG: All commands loaded!")  # <-- Added debug print

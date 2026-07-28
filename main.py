@@ -23,13 +23,14 @@ load_dotenv()
 
 OWNER_DISCORD_ID = int(os.getenv("OWNER_DISCORD_ID", "951539463224451102"))
 TOKEN = os.getenv("DISCORD_TOKEN")
+APPLICATION_ID = 1530727217716527216  # This is Sonem's application ID!
 
 handler = logging.FileHandler(filename="sonem.log", encoding="utf-8", mode="w")
 intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
 
-bot = commands.Bot(command_prefix="!", intents=intents)
+bot = commands.Bot(command_prefix="!", intents=intents, application_id=APPLICATION_ID)
 tree = bot.tree
 
 
@@ -52,8 +53,8 @@ async def on_ready():
         await commands_setup(bot)
     except Exception as e:
         error = f"faild to load the bot | {e}"
-        state.log(error)       
-
+        state.log(error)
+        
     await tree.sync()
     if not autosave_loop.is_running():
         autosave_loop.start()
@@ -221,6 +222,7 @@ async def import_commands_with_self_heal():
 
     raise RuntimeError(f"gave up after {MAX_IMPORT_RETRIES} self-heal attempts")
 
+
 async def main():
     discord.utils.setup_logging(handler=handler, level=logging.INFO)
     await _install_shutdown_save()
@@ -253,6 +255,7 @@ async def main():
                 continue
             else:
                 backoff = 5
+
 
 if __name__ == "__main__":
     asyncio.run(main())
