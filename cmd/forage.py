@@ -11,26 +11,26 @@ async def forage_setup(bot):
         "a dew-covered leaf",
         "a crumb of bread",
         "a smooth twig",
-        "a tiny mushroom spore",
+        "a tiny mushroom spore ✨",
         "a patch of soft moss",
         "a lost button",
-        "a single berry"
+        "a single berry 🍓"
     ]
     
     rare_finds = [
-        "a glowing spore! *floats excitedly*",
-        "a tiny golden acorn",
-        "a lost earring (where’s its pair?)",
-        "a miniature teacup! *sips imaginary tea*",
-        "a tiny mushroom friend! *waves back*"
+        "a glowing spore! ✨ *floats excitedly* ✨",
+        "a tiny golden acorn 🌰",
+        "a lost earring (where’s its pair?) 👂",
+        "a miniature teacup! *sips imaginary tea* ☕",
+        "a tiny mushroom friend! *waves back* 🍄"
     ]
     
     silly_finds = [
-        "a single sock. Where’s its pair? *tilts head curiously*",
-        "a tiny umbrella (it’s upside-down)",
-        "a crumpled receipt from 2012",
-        "a tiny spoon (is it for ants?)",
-        "a lost key (to what?)"
+        "a single sock. Where’s its pair? *tilts head curiously* 🧦",
+        "a tiny umbrella (it’s upside-down) ☔",
+        "a crumpled receipt from 2012 🧾",
+        "a tiny spoon (is it for ants?) 🥄",
+        "a lost key (to what?) 🔑"
     ]
     
     all_finds = {
@@ -56,13 +56,18 @@ async def forage_setup(bot):
         
         find = random.choice(all_finds[find_type])
         
-        # Tiny story for the find
+        # Tiny story for the find (even more variety!)
         stories = [
             f"You brush aside a damp leaf and find... {find}!",
             f"You dig a little deeper and uncover... {find}!",
             f"You peek under a rock and—oh! {find}!",
             f"You reach into a dark corner and... {find}!",
-            f"You spot something glinting and discover... {find}!"
+            f"You spot something glinting and discover... {find}!",
+            f"You nudge a twig aside and—*gasp*—{find}!",
+            f"You wiggle your tiny cap and—*whoa*—{find}!",
+            f"You listen to the wind and—*rustle*—{find}!",
+            f"You hum a little tune and—*oh!*—{find}!",
+            f"You take a deep breath and—*sniff*—{find}!"
         ]
         
         story = random.choice(stories)
