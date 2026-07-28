@@ -7,7 +7,7 @@ async def flip_setup(bot):
     @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
     @app_commands.allowed_installs(guilds=True, users=True)
     @app_commands.describe(times="How many times to flip? (default: 1)")
-    async def flip(self, interaction: discord.Interaction, times: int = 1):
+    async def flip(interaction: discord.Interaction, times: int = 1):
         await interaction.response.defer()
         
         if times < 1:
