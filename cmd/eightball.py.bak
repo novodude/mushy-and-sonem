@@ -37,4 +37,5 @@ async def eightball_setup(bot: commands.Bot):
         
         # Pick a random answer and send it
         answer = random.choice(answers)
-        await interaction.followup.send(f"🍄 *You ask:* **{question}**\n🍄 *The mushroom replies:* {answer}")
+        await interaction.followup.send(f"🍄 *You ask:* **{question}**
+🍄 *The mushroom replies:* {answer}")

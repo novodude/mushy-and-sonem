@@ -18,3 +18,4 @@ async def say_setup(bot):
 ```
 
 Then inside the file called `commands.py` import your setup function and add await it in the `commmands_setup` function, before writing check if there's already something there, don't overwrite the file and delete stuff.
+DO NOT OVERWRITE THE FILE WITHOUT READING THE WHOLE FILE.
