@@ -6,3 +6,4 @@ from cmd.eightball import eightball_setup
 from cmd.poll import poll_setup
 from cmd.tictactoe import tictactoe_setup
 from cmd.hangman import hangman_setup
+from cmd.flip import flip_setup
