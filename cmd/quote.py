@@ -28,7 +28,7 @@ async def quote_setup(bot):
         text="The quote text",
         author="Who said it? (optional)"
     )
-    async def quote_add(self, interaction: discord.Interaction, text: str, author: str = None):
+    async def quote_add(interaction: discord.Interaction, text: str, author: str = None):
         await interaction.response.defer(thinking=True)
 
         quotes = load_quotes()
@@ -45,7 +45,7 @@ async def quote_setup(bot):
         await interaction.followup.send(f"✨ Quote added! {text}{author_text}")
 
     @quote_group.command(name="random", description="Get a random quote from the collection")
-    async def quote_random(self, interaction: discord.Interaction):
+    async def quote_random(interaction: discord.Interaction):
         await interaction.response.defer(thinking=True)
 
         quotes = load_quotes()
@@ -59,7 +59,7 @@ async def quote_setup(bot):
 
     @quote_group.command(name="search", description="Search quotes by keyword")
     @app_commands.describe(keyword="What to search for")
-    async def quote_search(self, interaction: discord.Interaction, keyword: str):
+    async def quote_search(interaction: discord.Interaction, keyword: str):
         await interaction.response.defer(thinking=True)
 
         quotes = load_quotes()
