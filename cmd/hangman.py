@@ -74,9 +74,11 @@ async def end_game(interaction: discord.Interaction, result):
     game = active_games.get(interaction.message.id)
     
     # Disable all buttons
+    view = View(timeout=None)
     for row in interaction.message.components:
         for button in row.children:
             button.disabled = True
+            view.add_item(button)
     
     # Update message
     word_display = ' '.join(game['guessed'])
@@ -85,7 +87,7 @@ async def end_game(interaction: discord.Interaction, result):
     else:
         content = f"💀 You lose! The word was: **{game['word']}**"
     
-    await interaction.response.edit_message(content=content, view=interaction.message.components[0])
+    await interaction.response.edit_message(content=content, view=view)
     del active_games[interaction.message.id]
 
 async def hangman_setup(bot):
@@ -97,18 +99,20 @@ async def hangman_setup(bot):
         word = random.choice(WORDS)
         guessed = ['_' for _ in word]
         
-        # Create view with letter buttons
+        # Create view with letter buttons (split into two rows to avoid max children limit)
         view = View(timeout=None)
         
-        # Add buttons in rows (A-M, N-Z) - FIXED: no nested View!
+        # First row: A-M
         for letter in 'ABCDEFGHIJKLM':
             view.add_item(LetterButton(letter))
         
+        # Second row: N-Z
         for letter in 'NOPQRSTUVWXYZ':
             view.add_item(LetterButton(letter))
         
         # Store game state
-        message = await interaction.response.send_message(
+        await interaction.response.defer()
+        message = await interaction.followup.send(
             f"**Hangman!**\nWord: {' '.join(guessed)}\nMistakes: 0/6\n\n  +---+\n  |   |\n      |\n      |\n      |\n      |\n=========",
             view=view
         )
