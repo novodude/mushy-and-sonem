@@ -9,7 +9,8 @@ active_games = {}
 # Word list (simple for now)
 WORDS = [
     "apple", "banana", "cherry", "dragon", "elephant", 
-    "forest", "garden", "happy", "island", "jungle"
+    "forest", "garden", "happy", "island", "jungle",
+    "mushroom", "log", "spore", "mycelium", "cap"
 ]
 
 class LetterButton(Button):
@@ -82,10 +83,17 @@ async def end_game(interaction: discord.Interaction, result):
     
     # Update message
     word_display = ' '.join(game['guessed'])
+    flair = random.choice([
+        "*a tiny mushroom cap wobbles as the game ends* 🍄",
+        "*the log creaks softly under the weight of the gallows* 🌲",
+        "*a spore drifts lazily in the air* ✨",
+        "*the mycelium network hums with the result* 🌐"
+    ])
+    
     if result == 'win':
-        content = f"🎉 You win! The word was: **{game['word']}**"
+        content = f"🎉 You win! The word was: **{game['word']}**\n{flair}"
     else:
-        content = f"💀 You lose! The word was: **{game['word']}**"
+        content = f"💀 You lose! The word was: **{game['word']}**\n{flair}"
     
     await interaction.response.edit_message(content=content, view=view)
     del active_games[interaction.message.id]
@@ -103,17 +111,28 @@ async def hangman_setup(bot):
         view = View(timeout=None)
         
         # First row: A-M
+        row1 = View(timeout=None)
         for letter in 'ABCDEFGHIJKLM':
-            view.add_item(LetterButton(letter))
+            row1.add_item(LetterButton(letter))
+        view.add_item(row1)
         
         # Second row: N-Z
+        row2 = View(timeout=None)
         for letter in 'NOPQRSTUVWXYZ':
-            view.add_item(LetterButton(letter))
+            row2.add_item(LetterButton(letter))
+        view.add_item(row2)
         
         # Store game state
+        flair = random.choice([
+            "*a tiny mushroom cap peeks out from under the log* 🍄",
+            "*the mycelium network pulses with anticipation* 🌐",
+            "*a spore drifts into the sunlight* ✨",
+            "*the log creaks softly as the game begins* 🌲"
+        ])
+        
         await interaction.response.defer()
         message = await interaction.followup.send(
-            f"**Hangman!**\nWord: {' '.join(guessed)}\nMistakes: 0/6\n\n  +---+\n  |   |\n      |\n      |\n      |\n      |\n=========",
+            f"**Hangman!**\nWord: {' '.join(guessed)}\nMistakes: 0/6\n\n  +---+\n  |   |\n      |\n      |\n      |\n      |\n=========\n{flair}",
             view=view
         )
         
