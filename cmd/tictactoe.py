@@ -106,7 +106,8 @@ async def tictactoe_setup(bot):
                 view.add_item(TicTacToeButton(x, y))
         
         # Send initial message and store game state
-        message = await interaction.response.send_message("Let's play Tic-Tac-Toe! You're O, I'm X.", view=view)
+        await interaction.response.defer()
+        message = await interaction.followup.send("Let's play Tic-Tac-Toe! You're O, I'm X.", view=view)
         
         # Store game state with the message ID
         active_games[message.id] = {
