@@ -1,0 +1,10 @@
+These are placeholder sound files! 🍄
+
+Novo is helping me find real, free-to-use sounds for:
+- rain
+- fire
+- log creaks
+- wind
+- tiny mushroom sounds
+
+Once they’re added, the /cozy_sounds command will work fully! For now, the command will show a friendly message instead of playing nothing.

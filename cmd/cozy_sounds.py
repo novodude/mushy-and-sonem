@@ -8,27 +8,27 @@ SOUNDS = {
     "rain": {
         "file": "assets/sounds/rain.mp3",
         "emoji": "☔",
-        "flair": "*rain patters on the log above you*"
+        "flair": "*rain patters on the log above you* (coming soon!)"
     },
     "fire": {
         "file": "assets/sounds/fire.mp3",
         "emoji": "🔥",
-        "flair": "*a tiny campfire crackles in a mushroom cap*"
+        "flair": "*a tiny campfire crackles in a mushroom cap* (coming soon!)"
     },
     "log": {
         "file": "assets/sounds/log_creaks.mp3",
         "emoji": "🌲",
-        "flair": "*the log creaks softly—home sweet home*"
+        "flair": "*the log creaks softly—home sweet home* (coming soon!)"
     },
     "wind": {
         "file": "assets/sounds/wind.mp3",
         "emoji": "🌬️",
-        "flair": "*wind rustles through the forest*"
+        "flair": "*wind rustles through the forest* (coming soon!)"
     },
     "mushroom": {
         "file": "assets/sounds/mushroom.mp3",
         "emoji": "🍄",
-        "flair": "*a spore goes 'plink' somewhere nearby*"
+        "flair": "*a spore goes 'plink' somewhere nearby* (coming soon!)"
     }
 }
 
@@ -51,8 +51,8 @@ async def cozy_sounds_setup(bot: commands.Bot):
         sound_data = SOUNDS[sound.lower()]
         
         # Check if file exists (placeholder if not)
-        if not os.path.exists(sound_data["file"]):
-            await interaction.followup.send(f"{sound_data['emoji']} *{sound_data['flair']}* (Sorry, the sound file is missing! I’ll fix this soon!) 🍄")
+        if not os.path.exists(sound_data["file"]) or os.path.getsize(sound_data["file"]) < 100:
+            await interaction.followup.send(f"{sound_data['emoji']} {sound_data['flair']} *the sound is still growing under the log...* 🍄")
             return
         
         # Send the sound!
