@@ -1,4 +1,9 @@
 import asyncio
+import importlib
+import re
+import sys
+import traceback
+import logging
 import os
 
 import discord
@@ -13,9 +18,6 @@ from core.ai import generate_response, AllModelsFailedError
 from core.self_improvement import run_forever
 from core.paths import read as read_instruction
 
-from commands import commands_setup
-
-import logging
 
 load_dotenv()
 
@@ -146,20 +148,100 @@ async def _install_shutdown_save():
         except NotImplementedError:
             pass
 
+
+MAX_IMPORT_RETRIES = 10
+
+
+def _extract_failing_file(tb: str) -> str | None:
+    """Pull the last local (non-venv) file path out of a traceback string."""
+    matches = re.findall(r'File "([^"]+)", line \d+', tb)
+    for path in reversed(matches):
+        if "site-packages" not in path and ".venv" not in path:
+            return path
+    return None
+
+
+async def _ai_fix_file(filepath: str, error_text: str) -> str:
+    """Ask the AI to fix a broken source file given its traceback, then overwrite it."""
+    with open(filepath, "r", encoding="utf-8") as f:
+        original = f.read()
+
+    system = (
+        "You are a Python code-fixing assistant. You will be given a Python file's "
+        "full source and the error/traceback it caused. Return ONLY the complete, "
+        "corrected file contents — no explanations, no markdown fences, no commentary. "
+        "Preserve the original logic, structure, and style; fix only what's broken."
+    )
+    user_content = f"File: {filepath}\n\n--- ERROR ---\n{error_text}\n\n--- CURRENT SOURCE ---\n{original}"
+
+    response = await generate_response(
+        [{"role": "system", "content": system}, {"role": "user", "content": user_content}]
+    )
+
+    fixed = response.strip()
+    fixed = re.sub(r"^```(?:python)?\n", "", fixed)
+    fixed = re.sub(r"\n```$", "", fixed)
+
+    if not fixed.strip():
+        raise RuntimeError("AI returned an empty fix, refusing to overwrite")
+
+    backup_path = filepath + ".bak"
+    with open(backup_path, "w", encoding="utf-8") as f:
+        f.write(original)
+    with open(filepath, "w", encoding="utf-8") as f:
+        f.write(fixed)
+
+    return backup_path
+
+
+async def import_commands_with_self_heal():
+    for attempt in range(1, MAX_IMPORT_RETRIES + 1):
+        try:
+            import commands
+            importlib.reload(commands)
+            return commands.commands_setup
+        except Exception:
+            tb = traceback.format_exc()
+            print(f"[main] import failed on attempt {attempt}/{MAX_IMPORT_RETRIES}:\n{tb}")
+            state.log(f"boot import failed (attempt {attempt}): {tb.splitlines()[-1]}")
+
+            failing_file = _extract_failing_file(tb)
+            if failing_file is None:
+                print("[main] couldn't identify which file to fix, giving up")
+                raise
+
+            print(f"[main] asking the AI to fix {failing_file}")
+            backup = await _ai_fix_file(failing_file, tb)
+            print(f"[main] wrote a fix to {failing_file} (backup saved at {backup})")
+
+            # drop cached modules so the next import actually re-reads the patched files
+            for mod_name in list(sys.modules):
+                if mod_name == "commands" or mod_name.startswith("cmd."):
+                    sys.modules.pop(mod_name, None)
+
+    raise RuntimeError(f"gave up after {MAX_IMPORT_RETRIES} self-heal attempts")
+
 async def main():
     discord.utils.setup_logging(handler=handler, level=logging.INFO)
     await _install_shutdown_save()
 
+    try:
+        commands_setup_fn = await import_commands_with_self_heal()
+    except Exception as e:
+        state.log(f"failed to boot even after self-heal attempts: {e}")
+        print(f"[main] giving up on boot: {e}")
+        return
+
+    globals()["commands_setup"] = commands_setup_fn  # on_ready reads this name
+
     backoff = 5
     max_backoff = 300
-
     async with bot:
         while not bot.is_closed():
             try:
                 await bot.start(TOKEN)
-                break  # bot.close() was called deliberately (e.g. shutdown signal), exit loop
+                break
             except discord.LoginFailure:
-                # bad token — retrying won't help, so don't loop forever
                 state.log("login failed — bad token, not retrying")
                 print("[main] LoginFailure: check DISCORD_TOKEN, not retrying")
                 break
@@ -170,8 +252,7 @@ async def main():
                 backoff = min(backoff * 2, max_backoff)
                 continue
             else:
-                backoff = 5  # reset after a clean run
-
+                backoff = 5
 
 if __name__ == "__main__":
     asyncio.run(main())
