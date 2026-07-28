@@ -48,18 +48,22 @@ async def bot_move(interaction: discord.Interaction, game):
     game['board'][y][x] = 'X'
     
     # Update button
-    for child in interaction.message.components[0].children:
-        if child.x == x and child.y == y:
-            child.label = 'X'
-            child.style = discord.ButtonStyle.danger
-            child.disabled = True
-            break
+    view = interaction.message.components[0]
+    for child in view.children:
+        if hasattr(child, 'x') and hasattr(child, 'y'):  # Check if it's a TicTacToeButton
+            if child.x == x and child.y == y:
+                child.label = 'X'
+                child.style = discord.ButtonStyle.danger
+                child.disabled = True
+                break
     
     # Check for win/tie
     if check_win(game['board'], 'X'):
         await end_game(interaction, 'X')
     elif check_tie(game['board']):
         await end_game(interaction, None)
+    else:
+        await interaction.response.edit_message(view=view)
 
 def check_win(board, player):
     # Check rows, columns, diagonals
@@ -75,9 +79,11 @@ def check_tie(board):
 
 async def end_game(interaction: discord.Interaction, winner):
     # Disable all buttons
+    view = View(timeout=None)
     for row in interaction.message.components:
         for button in row.children:
             button.disabled = True
+            view.add_item(button)
     
     # Update message
     if winner == 'X':
@@ -87,7 +93,7 @@ async def end_game(interaction: discord.Interaction, winner):
     else:
         result = "It's a tie!"
     
-    await interaction.response.edit_message(content=f"Game over! {result}", view=interaction.message.components[0])
+    await interaction.response.edit_message(content=f"Game over! {result}", view=view)
     if interaction.message.id in active_games:
         del active_games[interaction.message.id]
 
