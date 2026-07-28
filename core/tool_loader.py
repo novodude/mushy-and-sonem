@@ -47,23 +47,5 @@ def load_tools() -> dict:
     logged and skipped rather than taking the whole bot down — self-written code
     failing to import shouldn't be fatal."""
     registry = dict(CORE_TOOLS)
-
-    for _, name, is_pkg in pkgutil.iter_modules([str(PLUGINS_DIR)]):
-        if is_pkg or name.startswith("_"):
-            continue
-        try:
-            module = importlib.import_module(f"plugins.{name}")
-            plugin_tools = getattr(module, "TOOLS", {})
-            for tool_name, handler in plugin_tools.items():
-                if tool_name in CORE_TOOLS:
-                    print(f"[tool_loader] plugin '{name}' tried to shadow core tool '{tool_name}', skipping")
-                    continue
-                registry[tool_name] = handler
-        except Exception as e:
-            print(f"[tool_loader] failed to load plugin '{name}': {e}")
-
     return registry
 
-
-def list_plugin_tool_names() -> list[str]:
-    return [n for n, _, p in pkgutil.iter_modules([str(PLUGINS_DIR)]) if not p and not n.startswith("_")]

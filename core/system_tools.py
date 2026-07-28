@@ -17,7 +17,6 @@ from core.ai import describe_image
 
 ROOT_DIR = Path(os.getenv("SONEM_ROOT_DIR", Path(__file__).resolve().parent.parent))
 TIMEOUT_SECONDS = 30
-MAX_OUTPUT_CHARS = 4000
 
 
 async def h_vision(params: dict, ctx) -> str:
@@ -36,7 +35,7 @@ async def h_read_file(params: dict, ctx) -> str:
     if not path.exists() or not path.is_file():
         return f"No such file: {params.get('path')}"
     try:
-        return path.read_text(errors="replace")[:MAX_OUTPUT_CHARS]
+        return path.read_text(errors="replace")
     except Exception as e:
         return f"Couldn't read file: {e}"
 
@@ -82,7 +81,7 @@ async def _run_subprocess(*args: str, cwd: Path) -> str:
     result = out
     if err:
         result += f"\n[stderr]\n{err}" if result else f"[stderr]\n{err}"
-    return (result or "[no output]")[:MAX_OUTPUT_CHARS]
+    return (result or "[no output]")
 
 
 async def _run_shell(command: str, cwd: Path) -> str:
@@ -105,8 +104,7 @@ async def _run_shell(command: str, cwd: Path) -> str:
     result = out
     if err:
         result += f"\n[stderr]\n{err}" if result else f"[stderr]\n{err}"
-    return (result or "[no output]")[:MAX_OUTPUT_CHARS]
-
+    return (result or "[no output]")
 
 async def h_run_bash(params: dict, ctx) -> str:
     command = params.get("command", "")

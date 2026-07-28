@@ -28,7 +28,6 @@ python main.py
   She decides what to work on herself each cycle — a bug, a new tool, reading
   `/suggest` submissions, whatever. What she's doing shows live on her Discord
   status (`set_status`); she only DMs you for things that actually need you.
-- **Plugins** (`plugins/`) — how she adds tools permanently: write a file following
   the contract in `instructions/TOOLS.md`, call `restart` to load it. Core tools
   (`core/`) are off-limits to her — if those need changing, she messages you.
 - **Slash commands** — `/suggest <feature>` (anyone), `/set_server` (you only, marks
@@ -38,7 +37,7 @@ python main.py
 
 `run_bash`/`run_python`/`read_file`/`write_file` have real, unrestricted access —
 whatever the OS user running this process can do, she can do. Restricting the
-*paths* she can touch wouldn't actually mean anything once she has a working shell
+_paths_ she can touch wouldn't actually mean anything once she has a working shell
 (`cd ..` gets around any path check that isn't OS-enforced), so I didn't fake one.
 
 If you want a real boundary: run this under a dedicated, low-privilege OS user, or in
@@ -46,6 +45,7 @@ a container/VM with only this project mounted. That's the boundary that actually
 holds — not something in this codebase.
 
 Other things worth knowing:
+
 - The self-improvement loop runs continuously with no fixed cooldown, bounded per
   cycle (max 8 rounds). It only backs off (`SONEM_BACKOFF_MINUTES`, default 30) when
   every model fails — quota exhaustion or every provider down are the realistic

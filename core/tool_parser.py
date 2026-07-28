@@ -150,7 +150,7 @@ async def dispatch_tools(tools: list[dict], message, state, bot, registry: dict,
             result = await handler(params, ctx)
             if isinstance(result, str):
                 results.append({"tool": name, "result": result})
-                state.log(f"{name}({params}) -> {result[:200]}")
+                state.log(f"{name}({params}) -> {result}")
             else:
                 state.log(f"{name}({params}) -> done")
         except Exception as e:

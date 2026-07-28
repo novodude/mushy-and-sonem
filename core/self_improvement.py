@@ -87,12 +87,13 @@ def _build_prompt(state: State) -> list[dict]:
     mission = read_instruction("instructions/MISSION.md")
     tools_doc = read_instruction("instructions/TOOLS.md")
     commands_doc = read_instruction("instructions/COMMANDS.md")
+    bot_log = read_instruction("sonem.log")
 
     pending = [s for s in (state.suggestions or []) if not s.get("done")]
     suggestions_text = "\n".join(f"- (from {s['by']}): {s['text']}" for s in pending[:10]) or "(none pending)"
-    log_tail = "\n".join(state.recent_log(15)) or "(nothing logged yet)"
+    log_tail = "\n".join(state.recent_log(25)) or "(nothing logged yet)"
 
-    system = f"{soul}\n\n---\n\n{mission}\n\n---\n\n{commands_doc}"
+    system = f"{soul}\n\n---\n\n{mission}\n\n---\n\n{tools_doc}\n\n---\n\n{commands_doc}\n\n---\n\n{bot_log}"
     user = (
         f"## Self-improvement cycle {state.cycle_count}\n\n"
         f"**Status:** {state.status}\n"
@@ -100,6 +101,7 @@ def _build_prompt(state: State) -> list[dict]:
         f"**Current task:** {state.current_task or '(none — pick something)'}\n\n"
         f"**Pending /suggest submissions:**\n{suggestions_text}\n\n"
         f"**Recent activity log:**\n{log_tail}\n\n"
+        "please don't kill yourself"
         "Continue or start your work for this cycle. Call `set_status` with what "
         "you're doing right now — that's how anyone sees your activity, not by "
         "messaging. Use `message_dev` only for things that actually need Novo. "

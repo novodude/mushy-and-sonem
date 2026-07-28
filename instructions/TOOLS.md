@@ -50,37 +50,3 @@ Talk in a channel, or manage your own server.
 
 `{"name": "...", "topic": "optional"}`
 Only works once Novo has run `/set_server`.
-
----
-
-## Writing your own tools (plugins)
-
-To add a new tool permanently, write a file into `plugins/` — one file per tool (or a
-couple closely related ones):
-
-```python
-# plugins/dice_roll.py
-import random
-
-async def h_dice_roll(params: dict, ctx) -> str:
-    sides = int(params.get("sides", 6))
-    return f"rolled a {random.randint(1, sides)}"
-
-TOOLS = {"dice_roll": h_dice_roll}
-```
-
-Rules for plugins:
-
-- Must define a module-level `TOOLS: dict[str, callable]` mapping tool name -> async
-  handler.
-- Every handler is `async def handler(params: dict, ctx) -> str | None`. `ctx` has
-  `.message` (the triggering/anchor message), `.state` (persistent state — has
-  `.log(text)`, `.mood`, `.status`, etc.), and `.bot` (the discord.py Bot).
-- Don't shadow a core tool name (vision, read_file, write_file, list_files, run_bash,
-  run_python, restart, message_dev, send_message, edit_message, delete_message,
-  create_channel) — it'll just get skipped.
-- A plugin that fails to import gets logged and skipped, not fatal — but that also
-  means a broken plugin silently does nothing, so actually test what you write with
-  `run_python` before you commit to it.
-- Call `restart` after writing or changing a plugin file — it's not loaded until then.
-

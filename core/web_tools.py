@@ -9,7 +9,6 @@ from ddgs import DDGS
 from crawl4ai import AsyncWebCrawler
 
 MAX_RESULTS = 5
-MAX_PAGE_CHARS = 4000
 
 
 async def h_search(params: dict, ctx) -> str:
@@ -47,7 +46,7 @@ async def h_fetch_page(params: dict, ctx) -> str:
         content = result.markdown or result.cleaned_html or ""
         if not content.strip():
             return f"Fetched '{url}' but got no readable content."
-        return content[:MAX_PAGE_CHARS]
+        return content
     except Exception as e:
         return f"Couldn't fetch '{url}': {e}"
 
