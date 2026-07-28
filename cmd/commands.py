@@ -7,6 +7,8 @@ from cmd.flip import flip_setup
 from cmd.eightball import eightball_setup
 from cmd.forage import forage_setup
 from cmd.fact import fact_setup
+from cmd.hangman import hangman_setup
+from cmd.quote_image import quote_image_setup
 
 async def commands_setup(bot: commands.Bot):
     """Setup all commands for the bot."""
@@ -15,3 +17,5 @@ async def commands_setup(bot: commands.Bot):
     await eightball_setup(bot)
     await forage_setup(bot)
     await fact_setup(bot)
+    await hangman_setup(bot)
+    await quote_image_setup(bot)
