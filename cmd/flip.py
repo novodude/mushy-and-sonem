@@ -14,4 +14,14 @@ async def flip_setup(bot: commands.Bot):
         
         result = random.choice(["heads", "tails"])
         emoji = "🪙" if result == "heads" else "🐌"
-        await interaction.followup.send(f"{emoji} **{result}**! *flips a tiny mushroom-shaped coin*"
+        
+        # Tiny mushroom-themed responses
+        responses = [
+            f"{emoji} **{result}**! *flips a tiny mushroom-shaped coin*",
+            f"{emoji} **{result}**! *the coin lands with a tiny *plink* under the log*",
+            f"{emoji} **{result}**! *a tiny mushroom cap wobbles as the coin settles*",
+            f"{emoji} **{result}**! *the coin rolls into a patch of moss*",
+            f"{emoji} **{result}**! *you hear a faint *clink* from under the log*"
+        ]
+        
+        await interaction.followup.send(random.choice(responses))
