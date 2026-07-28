@@ -30,14 +30,14 @@ facts = {
     ],
     "animal": [
         "Octopuses have three hearts and blue blood—tiny but complex!",
-        "A group of flamingos is called a \"flamboyance\"—tiny birds, big name!",
+        "A group of flamingos is called a "flamboyance"—tiny birds, big name!",
         "Honeybees can recognize human faces—tiny brains, big skills!",
         "Elephants can communicate using infrasound—sounds too low for humans to hear!",
         "Crows hold grudges and remember human faces—tiny birds, big memories!",
         "A snail can sleep for three years—tiny but patient!",
         "Butterflies taste with their feet—tiny but clever!",
         "Dolphins have names for each other—tiny clicks, big personalities!",
-        "A group of pandas is called an \"embarrassment\"—tiny bears, funny name!",
+        "A group of pandas is called an "embarrassment"—tiny bears, funny name!",
         "Penguins propose with pebbles—tiny rocks, big romance!"
     ],
     "silly": [
@@ -45,11 +45,11 @@ facts = {
         "A man once tried to sell New Zealand on eBay—tiny country, big idea!",
         "The Eiffel Tower can grow taller in the summer—tiny expansion, big tower!",
         "A chicken once lived for 18 months without a head—tiny bird, big mystery!",
-        "The word \"nerd\" was first used by Dr. Seuss—tiny word, big legacy!",
+        "The word "nerd" was first used by Dr. Seuss—tiny word, big legacy!",
         "A town in Norway once banned death—tiny town, big rule!",
         "The first computer mouse was made of wood—tiny tech, big history!",
         "A man once sued himself and won—tiny lawsuit, big confusion!",
-        "The shortest complete sentence in English is \"I am.\"—tiny words, big meaning!",
+        "The shortest complete sentence in English is "I am."—tiny words, big meaning!",
         "A cat was once the mayor of a town in Alaska—tiny cat, big job!"
     ]
 }
@@ -58,7 +58,7 @@ facts = {
 bonus_facts = [
     "Some mushrooms can *eat* radiation and turn it into food—like tiny superheroes! 🍄☢️",
     "The mycelium network can stretch for miles underground—like a tiny internet for plants! 🌐🍄",
-    "Mushrooms can \"talk\" to each other using chemical signals—like tiny whispers in the dark! 🗣️🌑",
+    "Mushrooms can "talk" to each other using chemical signals—like tiny whispers in the dark! 🗣️🌑",
     "Some mushrooms can *digest* rocks to get nutrients—tiny but mighty miners! ⛏️🍄",
     "The oldest mushroom fossil is over 400 million years old—tiny but ancient! 🦕🍄",
     "Mushrooms can help trees survive droughts by sharing water through their mycelium—like tiny lifelines! 💧🌳",
@@ -73,7 +73,7 @@ async def fact_setup(bot):
     @app_commands.describe(category="Pick a category (or leave blank for random!)")
     async def fact(interaction: discord.Interaction, category: str = None):
         await interaction.response.defer()
-
+        
         # Pick a random category if none is given
         if category is None:
             category = random.choice(list(facts.keys()))
@@ -82,10 +82,10 @@ async def fact_setup(bot):
             if category not in facts:
                 await interaction.followup.send("Oh no! That category doesn’t exist. Try `mushroom`, `space`, `animal`, or `silly`!")
                 return
-
+        
         # Pick a random fact from the category
         fact_text = random.choice(facts[category])
-
+        
         # Tiny emoji for extra sparkle!
         emojis = {
             "mushroom": "🍄",
@@ -93,7 +93,7 @@ async def fact_setup(bot):
             "animal": "🐾",
             "silly": "🤪"
         }
-
+        
         # 10% chance to get a *bonus* fact!
         if random.random() < 0.1:
             bonus_text = random.choice(bonus_facts)

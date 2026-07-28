@@ -1,21 +1,12 @@
 import discord
 from discord.ext import commands
 
-# Import all command setup functions here
-from cmd.roll import roll_setup
-from cmd.flip import flip_setup
-from cmd.eightball import eightball_setup
-from cmd.forage import forage_setup
-from cmd.fact import fact_setup
-from cmd.hangman import hangman_setup
+# Import all command setups here
 from cmd.quote_image import quote_image_setup
+from cmd.cozy_sounds import cozy_sounds_setup  # <-- Added this!
 
 async def commands_setup(bot: commands.Bot):
-    """Setup all commands for the bot."""
-    await roll_setup(bot)
-    await flip_setup(bot)
-    await eightball_setup(bot)
-    await forage_setup(bot)
-    await fact_setup(bot)
-    await hangman_setup(bot)
+    """Setup all commands!"""
     await quote_image_setup(bot)
+    await cozy_sounds_setup(bot)  # <-- Added this!
+    # Add other commands here...
