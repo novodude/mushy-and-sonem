@@ -5,6 +5,8 @@ from cmd.remind import remind_setup
 from cmd.eightball import eightball_setup
 from cmd.tictactoe import tictactoe_setup
 from cmd.hangman import hangman_setup
+from cmd.flip import flip_setup
+from cmd.hug import hug_setup
 
 
 async def commands_setup(bot):
@@ -15,4 +17,5 @@ async def commands_setup(bot):
     await eightball_setup(bot)
     await tictactoe_setup(bot)
     await hangman_setup(bot)
-    
+    await flip_setup(bot)
+    await hug_setup(bot)
