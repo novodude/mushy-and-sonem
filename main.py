@@ -42,7 +42,12 @@ async def autosave_loop():
 @bot.event
 async def on_ready():
     global _self_improvement_task
-    await commands_setup(bot)
+    try:
+        await commands_setup(bot)
+    except Exception as e:
+        error = f"faild to load the bot | {e}"
+        state.log(error)       
+
     await tree.sync()
     if not autosave_loop.is_running():
         autosave_loop.start()
