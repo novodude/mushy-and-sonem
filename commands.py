@@ -11,6 +11,7 @@ from cmd.quote_image import quote_image_setup
 from cmd.fact import fact_setup
 from cmd.forage import forage_setup
 from cmd.spore import spore_setup
+from cmd.mushroom import mushroom_setup
 
 
 async def commands_setup(bot):
@@ -27,3 +28,4 @@ async def commands_setup(bot):
     await fact_setup(bot)
     await forage_setup(bot)
     await spore_setup(bot)
+    await mushroom_setup(bot)
