@@ -2,9 +2,11 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 from PIL import Image, ImageDraw, ImageFont
+from pilmoji import Pilmoji
 import io
 import textwrap
 import random
+import os
 
 # Background colors and tiny mushroom doodles
 BACKGROUNDS = [
@@ -30,35 +32,55 @@ def create_quote_image(quote: str, author: str = "") -> io.BytesIO:
     img = Image.new('RGB', (800, 400), color=bg_color)
     draw = ImageDraw.Draw(img)
     
-    # Load a cozy font (fallback to default if not found)
+    # Try to load fonts (with better fallbacks)
     try:
-        font = ImageFont.truetype("DejaVuSans.ttf", 24)
-    except:
+        # Try to find a nice font
+        font_path = None
+        possible_fonts = [
+            "DejaVuSans.ttf",
+            "Arial.ttf",
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+            "/usr/share/fonts/truetype/arial.ttf"
+        ]
+        
+        for font in possible_fonts:
+            if os.path.exists(font):
+                font_path = font
+                break
+                
+        if font_path:
+            font = ImageFont.truetype(font_path, 24)
+        else:
+            font = ImageFont.load_default()
+    except Exception as e:
+        print(f"Font loading error: {e}")
         font = ImageFont.load_default()
     
-    # Wrap the quote text
+    # Wrap the quote text with pilmoji support
     max_width = 700
     avg_char_width = 12  # rough estimate
     max_chars_per_line = max_width // avg_char_width
-    wrapped_quote = textwrap.fill(quote, width=max_chars_per_line)
     
-    # Draw the quote
-    quote_x = 50
-    quote_y = 50
-    line_spacing = 10
-    for line in wrapped_quote.split('\n'):
-        draw.text((quote_x, quote_y), line, fill=(50, 50, 50), font=font)
-        quote_y += font.size + line_spacing
-    
-    # Draw the author (if provided)
-    if author:
-        author_text = f"— {author}"
-        draw.text((quote_x, quote_y + 20), author_text, fill=(80, 80, 80), font=font)
-    
-    # Add a tiny mushroom doodle in the corner
-    doodle_x = 700
-    doodle_y = 320
-    draw.text((doodle_x, doodle_y), doodle, fill=(100, 100, 100), font=font)
+    # Use pilmoji for emoji rendering
+    with Pilmoji(img) as pilmoji:
+        # Draw the quote
+        quote_x = 50
+        quote_y = 50
+        line_spacing = 10
+        
+        # Split and draw each line
+        wrapped_quote = textwrap.fill(quote, width=max_chars_per_line)
+        for line in wrapped_quote.split('\n'):
+            pilmoji.text((quote_x, quote_y), line, fill=(50, 50, 50), font=font)
+            quote_y += font.size + line_spacing
+        
+        # Draw the author (if provided)
+        if author:
+            author_text = f"— {author}"
+            pilmoji.text((quote_x, quote_y + 20), author_text, fill=(80, 80, 80), font=font)
+        
+        # Add a tiny mushroom doodle in the corner
+        pilmoji.text((700, 320), doodle, fill=(100, 100, 100), font=font)
     
     # Save to bytes
     img_bytes = io.BytesIO()
@@ -99,6 +121,6 @@ async def quote_image_setup(bot: commands.Bot):
             )
         except Exception as e:
             print(f"DEBUG: /quote_image command FAILED: {e}")
-            await interaction.followup.send(f"Oh no! Something went wrong while making the image: {e} *wiggles worriedly* 🍄")
+            await interaction.followup.send(f"Oh no! Something went wrong while making the image: {str(e)} *wiggles worriedly* 🍄")
     
     print("DEBUG: quote_image command registered in tree!")

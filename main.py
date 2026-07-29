@@ -35,7 +35,6 @@ tree = bot.tree
 state = load_state()
 _self_improvement_task: asyncio.Task | None = None
 
-
 @tasks.loop(seconds=60)
 async def autosave_loop():
     try:
@@ -50,7 +49,12 @@ async def on_ready():
     try:
         print("DEBUG: Starting commands_setup...")
         await commands_setup(bot)
-        print("DEBUG: commands_setup completed! Now syncing command tree...")
+        print("DEBUG: commands_setup completed! Waiting a moment to ensure all commands are registered...")
+        
+        # Wait a bit longer to ensure all commands are properly registered
+        await asyncio.sleep(5)
+        
+        print("DEBUG: Now syncing command tree...")
         # Sync the tree AFTER all commands are loaded
         synced_commands = await tree.sync()
         print(f"DEBUG: Command tree synced! Registered {len(synced_commands)} commands: {[cmd.name for cmd in synced_commands]}")

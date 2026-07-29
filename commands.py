@@ -51,8 +51,15 @@ async def commands_setup(bot):
     try:
         await quote_image_setup(bot)
         print("DEBUG: quote_image_setup completed successfully!")
+        
+        # Check if command is in local tree immediately after setup
+        local_commands = [cmd.name for cmd in bot.tree.get_commands()]
+        print(f"DEBUG: Local command tree after quote_image_setup: {local_commands}")
+        print(f"DEBUG: Is quote_image in local tree? {'quote_image' in local_commands}")
     except Exception as e:
         print(f"DEBUG: quote_image_setup FAILED: {e}")
+        import traceback
+        traceback.print_exc()
     
     print("DEBUG: Loading fact_setup...")
     await fact_setup(bot)
@@ -77,9 +84,13 @@ async def commands_setup(bot):
     print(f"DEBUG: Commands in tree after setup: {commands_in_tree}")
     
     # Add a small delay to ensure all commands are properly registered
-    print("DEBUG: Waiting 2 seconds to ensure all commands are registered...")
+    print("DEBUG: Waiting 5 seconds to ensure all commands are registered...")
     import asyncio
-    await asyncio.sleep(2)
+    await asyncio.sleep(5)
+    
+    # Check local tree again after delay
+    commands_in_tree = [cmd.name for cmd in bot.tree.get_commands()]
+    print(f"DEBUG: Commands in local tree after 5s delay: {commands_in_tree}")
     
     # Sync the command tree to Discord!
     print("DEBUG: Syncing command tree to Discord...")
@@ -87,5 +98,12 @@ async def commands_setup(bot):
         synced = await bot.tree.sync()
         print(f"DEBUG: Successfully synced {len(synced)} commands to Discord!")
         print(f"DEBUG: Synced commands: {[cmd.name for cmd in synced]}")
+        
+        # Check if quote_image is in the synced commands
+        synced_names = [cmd.name for cmd in synced]
+        print(f"DEBUG: Is quote_image in synced commands? {'quote_image' in synced_names}")
+        
     except Exception as e:
         print(f"DEBUG: Failed to sync command tree: {e}")
+        import traceback
+        traceback.print_exc()
