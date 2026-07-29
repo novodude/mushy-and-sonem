@@ -14,7 +14,7 @@ from cmd.spore import spore_setup
 from cmd.mushroom import mushroom_setup
 from cmd.cozy_sounds import cozy_sounds_setup
 from cmd.joke import joke_setup
-from cmd.test_quote import test_quote_setup  # <-- Added this import!
+from cmd.test_quote import test_quote_setup
 
 
 async def commands_setup(bot):
@@ -36,11 +36,17 @@ async def commands_setup(bot):
     except Exception as e:
         print(f"DEBUG: quote_image_setup FAILED: {e}")
     
+    print("DEBUG: About to call test_quote_setup...")
+    try:
+        await test_quote_setup(bot)
+        print("DEBUG: test_quote_setup completed successfully!")
+    except Exception as e:
+        print(f"DEBUG: test_quote_setup FAILED: {e}")
+    
     await fact_setup(bot)
     await forage_setup(bot)
     await spore_setup(bot)
     await mushroom_setup(bot)
     await cozy_sounds_setup(bot)
     await joke_setup(bot)
-    await test_quote_setup(bot)  # <-- Added this call!
     print("DEBUG: All commands loaded!")
