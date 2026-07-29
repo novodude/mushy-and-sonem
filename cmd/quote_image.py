@@ -5,27 +5,75 @@ from PIL import Image, ImageDraw, ImageFont
 import io
 import textwrap
 import random
-import sys
 
-print("DEBUG: quote_image.py module loaded!", file=sys.stderr)  # <-- Added super obvious debug
+# Background colors and tiny mushroom doodles
+BACKGROUNDS = [
+    (240, 230, 220),  # cozy parchment
+    (230, 220, 240),  # soft lavender
+    (220, 240, 230),  # minty fresh
+    (250, 240, 220),  # warm cream
+    (240, 230, 230),  # blush pink
+]
 
-# [previous BACKGROUNDS and MUSHROOM_DOODLES definitions remain exactly the same...]
+MUSHROOM_DOODLES = [
+    "🍄", "🌱", "✨", "🌿", "☁️", "🍃", "🌲", "🍂",
+    "*tiny cap*", "*wobbly stem*", "*spore puff*"
+]
 
 def create_quote_image(quote: str, author: str = "") -> io.BytesIO:
     """Create a cozy quote image with a tiny mushroom doodle!"""
-    # [previous create_quote_image function remains exactly the same...]
+    # Pick a random background and doodle
+    bg_color = random.choice(BACKGROUNDS)
+    doodle = random.choice(MUSHROOM_DOODLES)
+    
+    # Create the image
+    img = Image.new('RGB', (800, 400), color=bg_color)
+    draw = ImageDraw.Draw(img)
+    
+    # Load a cozy font (fallback to default if not found)
+    try:
+        font = ImageFont.truetype("DejaVuSans.ttf", 24)
+    except:
+        font = ImageFont.load_default()
+    
+    # Wrap the quote text
+    max_width = 700
+    avg_char_width = 12  # rough estimate
+    max_chars_per_line = max_width // avg_char_width
+    wrapped_quote = textwrap.fill(quote, width=max_chars_per_line)
+    
+    # Draw the quote
+    quote_x = 50
+    quote_y = 50
+    line_spacing = 10
+    for line in wrapped_quote.split('\n'):
+        draw.text((quote_x, quote_y), line, fill=(50, 50, 50), font=font)
+        quote_y += font.size + line_spacing
+    
+    # Draw the author (if provided)
+    if author:
+        author_text = f"— {author}"
+        draw.text((quote_x, quote_y + 20), author_text, fill=(80, 80, 80), font=font)
+    
+    # Add a tiny mushroom doodle in the corner
+    doodle_x = 700
+    doodle_y = 320
+    draw.text((doodle_x, doodle_y), doodle, fill=(100, 100, 100), font=font)
+    
+    # Save to bytes
+    img_bytes = io.BytesIO()
+    img.save(img_bytes, format='PNG')
+    img_bytes.seek(0)
+    
+    return img_bytes
 
 async def quote_image_setup(bot: commands.Bot):
     """Setup the /quote_image command!"""
-    print("DEBUG: quote_image_setup called! Checking if bot is ready...")  # <-- More obvious debug
-    print(f"DEBUG: bot.ready: {bot.is_ready()}")  # <-- Check bot state
-    
     @bot.tree.command(name="quote_image", description="Turn a quote into a cozy image with a tiny mushroom doodle!")
     @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
     @app_commands.allowed_installs(guilds=True, users=True)
     @app_commands.describe(quote="The quote to turn into an image", author="Who said it? (optional)")
     async def quote_image(interaction: discord.Interaction, quote: str, author: str = ""):
-        print(f"DEBUG: quote_image command called with quote: {quote}")  # <-- Added debug print
         await interaction.response.defer(thinking=True)
         
         try:
@@ -46,5 +94,4 @@ async def quote_image_setup(bot: commands.Bot):
                 file=file
             )
         except Exception as e:
-            print(f"DEBUG: quote_image error: {e}")  # <-- Added debug print
             await interaction.followup.send(f"Oh no! Something went wrong while making the image: {e} *wiggles worriedly* 🍄")
