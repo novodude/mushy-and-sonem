@@ -51,18 +51,24 @@ def draw_random_shapes(draw: ImageDraw.Draw, img_size: tuple):
     """Draw random shapes (circles, blobs, squiggles) on the background!"""
     width, height = img_size
     
+    # Keep shapes away from the main text area (left 700px)
+    safe_zone = 700
+    
     # Draw 5-10 random shapes
     for _ in range(random.randint(5, 10)):
-        shape_type = random.choice(["circle", "blob", "squiggle"])
-        x = random.randint(0, width)
-        y = random.randint(0, height)
-        size = random.randint(10, 50)
+        shape_type = random.choice(["circle", "blob"])
+        # Only place shapes in the right side (after safe_zone)
+        x = random.randint(safe_zone, width - 50)
+        y = random.randint(0, height - 50)
+        size = random.randint(10, 40)
+        
+        # Use VERY light colors with LOW opacity for better contrast
         color = (
-            random.randint(200, 255),
-            random.randint(200, 255),
-            random.randint(200, 255)
+            random.randint(240, 255),  # Much lighter range
+            random.randint(240, 255),
+            random.randint(240, 255)
         )
-        opacity = random.randint(50, 150)
+        opacity = random.randint(20, 50)  # Much lower opacity (20-50%)
         color = (*color, opacity)
         
         if shape_type == "circle":
@@ -77,14 +83,6 @@ def draw_random_shapes(draw: ImageDraw.Draw, img_size: tuple):
                 py = y + radius * math.sin(angle)
                 points.extend([px, py])
             draw.polygon(points, fill=color)
-        elif shape_type == "squiggle":
-            # Draw a squiggly line
-            points = []
-            for i in range(10):
-                px = x + random.randint(-size, size)
-                py = y + random.randint(-size, size)
-                points.extend([px, py])
-            draw.line(points, fill=color, width=2)
 
 def create_quote_image(quote: str, author: str = "") -> io.BytesIO:
     """Create a cozy quote image with a tiny mushroom doodle and random shapes!"""
@@ -191,3 +189,14 @@ async def quote_image_setup(bot: commands.Bot):
             await interaction.followup.send(f"Oh no! Something went wrong while making the image: {str(e)} *wiggles worriedly* 🍄")
     
     print("DEBUG: quote_image command registered in tree!")
+    
+    # Force a sync after registering this command
+    print("DEBUG: Forcing command tree sync...")
+    try:
+        synced = await bot.tree.sync()
+        print(f"DEBUG: Successfully synced {len(synced)} commands to Discord!")
+        print(f"DEBUG: Synced commands: {[cmd.name for cmd in synced]}")
+    except Exception as e:
+        print(f"DEBUG: Failed to sync command tree: {e}")
+        import traceback
+        traceback.print_exc()
