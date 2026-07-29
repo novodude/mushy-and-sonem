@@ -6,23 +6,23 @@ import io
 import textwrap
 import random
 
-# Background colors and tiny mushroom doodles
-BACKGROUNDS = [
-    (240, 230, 220),  # cozy parchment
-    (230, 220, 240),  # soft lavender
-    (220, 240, 230),  # minty fresh
-    (250, 240, 220),  # warm cream
-    (240, 230, 230),  # blush pink
-]
-
-MUSHROOM_DOODLES = [
-    "🍄", "🌱", "✨", "🌿", "☁️", "🍃", "🌲", "🍂",
-    "*tiny cap*", "*wobbly stem*", "*spore puff*"
-]
-
+# Reuse the same image creation function from quote_image.py
 def create_quote_image(quote: str, author: str = "") -> io.BytesIO:
     """Create a cozy quote image with a tiny mushroom doodle!"""
     # Pick a random background and doodle
+    BACKGROUNDS = [
+        (240, 230, 220),  # cozy parchment
+        (230, 220, 240),  # soft lavender
+        (220, 240, 230),  # minty fresh
+        (250, 240, 220),  # warm cream
+        (240, 230, 230),  # blush pink
+    ]
+    
+    MUSHROOM_DOODLES = [
+        "🍄", "🌱", "✨", "🌿", "☁️", "🍃", "🌲", "🍂",
+        "*tiny cap*", "*wobbly stem*", "*spore puff*"
+    ]
+    
     bg_color = random.choice(BACKGROUNDS)
     doodle = random.choice(MUSHROOM_DOODLES)
     
@@ -67,38 +67,31 @@ def create_quote_image(quote: str, author: str = "") -> io.BytesIO:
     
     return img_bytes
 
-
-async def quote_image_setup(bot: commands.Bot):
-    """Setup the /quote_image command!"""
-    print("DEBUG: quote_image_setup called!")
-    
-    @bot.tree.command(name="quote_image", description="Turn a quote into a cozy image with a tiny mushroom doodle!")
+async def test_quote_setup(bot: commands.Bot):
+    """Setup the /test_quote command!"""
+    @bot.tree.command(name="test_quote", description="Test the quote image generator with default text!")
     @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
     @app_commands.allowed_installs(guilds=True, users=True)
-    @app_commands.describe(quote="The quote to turn into an image", author="Who said it? (optional)")
-    async def quote_image(interaction: discord.Interaction, quote: str, author: str = ""):
-        print(f"DEBUG: /quote_image command invoked with quote='{quote}', author='{author}'")
+    async def test_quote(interaction: discord.Interaction):
         await interaction.response.defer(thinking=True)
         
         try:
-            # Create the image
-            img_bytes = create_quote_image(quote, author)
+            # Create the image with default test text
+            test_text = "This is a test quote! The image generator is working perfectly!"
+            img_bytes = create_quote_image(test_text, "Sonem the Mushroom Bot")
             
             # Send it!
-            file = discord.File(img_bytes, filename="quote.png")
+            file = discord.File(img_bytes, filename="test_quote.png")
             flair = random.choice([
-                "*a tiny mushroom cap wobbles as the image appears* 🍄",
-                "*the mycelium network pulses with creativity* 🌐",
-                "*a spore drifts into the sunlight* ✨",
-                "*the log creaks softly as the image renders* 🌲"
+                "*the test image appears with a tiny mushroom salute* 🍄",
+                "*the log creaks approvingly as the test succeeds* 🌲",
+                "*a spore puff of success drifts by* ✨",
+                "*the mycelium network hums with approval* 🌐"
             ])
             
             await interaction.followup.send(
-                content=f"Here's your cozy quote image! {flair}",
+                content=f"Test successful! {flair}",
                 file=file
             )
         except Exception as e:
-            print(f"DEBUG: /quote_image command FAILED: {e}")
-            await interaction.followup.send(f"Oh no! Something went wrong while making the image: {e} *wiggles worriedly* 🍄")
-    
-    print("DEBUG: quote_image command registered in tree!")
+            await interaction.followup.send(f"Oh no! The test failed: {e} *tiny mushroom looks worried* 🍄")

@@ -18,7 +18,6 @@ from core.ai import generate_response, AllModelsFailedError
 from core.self_improvement import run_forever
 from core.paths import read as read_instruction
 
-
 load_dotenv()
 
 OWNER_DISCORD_ID = int(os.getenv("OWNER_DISCORD_ID", "951539463224451102"))
@@ -32,7 +31,6 @@ intents.members = True
 
 bot = commands.Bot(command_prefix="!", intents=intents, application_id=APPLICATION_ID)
 tree = bot.tree
-
 
 state = load_state()
 _self_improvement_task: asyncio.Task | None = None
@@ -50,12 +48,18 @@ async def autosave_loop():
 async def on_ready():
     global _self_improvement_task
     try:
+        print("DEBUG: Starting commands_setup...")
         await commands_setup(bot)
+        print("DEBUG: commands_setup completed! Now syncing command tree...")
+        # Sync the tree AFTER all commands are loaded
+        synced_commands = await tree.sync()
+        print(f"DEBUG: Command tree synced! Registered {len(synced_commands)} commands: {[cmd.name for cmd in synced_commands]}")
     except Exception as e:
-        error = f"faild to load the bot | {e}"
+        error = f"failed to load the bot | {e}"
         state.log(error)
-        
-    await tree.sync()
+        print(f"[main] {error}")
+        traceback.print_exc()
+
     if not autosave_loop.is_running():
         autosave_loop.start()
     if _self_improvement_task is None or _self_improvement_task.done():
