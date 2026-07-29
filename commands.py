@@ -76,6 +76,11 @@ async def commands_setup(bot):
     commands_in_tree = [cmd.name for cmd in bot.tree.get_commands()]
     print(f"DEBUG: Commands in tree after setup: {commands_in_tree}")
     
+    # Add a small delay to ensure all commands are properly registered
+    print("DEBUG: Waiting 2 seconds to ensure all commands are registered...")
+    import asyncio
+    await asyncio.sleep(2)
+    
     # Sync the command tree to Discord!
     print("DEBUG: Syncing command tree to Discord...")
     try:
