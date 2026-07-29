@@ -91,7 +91,7 @@ def _build_prompt(state: State) -> list[dict]:
 
     pending = [s for s in (state.suggestions or []) if not s.get("done")]
     suggestions_text = "\n".join(f"- (from {s['by']}): {s['text']}" for s in pending[:10]) or "(none pending)"
-    log_tail = "\n".join(state.recent_log(25)) or "(nothing logged yet)"
+    log_tail = "\n".join(state.recent_log(10)) or "(nothing logged yet)"
 
     system = f"{soul}\n\n---\n\n{mission}\n\n---\n\n{tools_doc}\n\n---\n\n{commands_doc}\n\n---\n\n{bot_log}"
     user = (
