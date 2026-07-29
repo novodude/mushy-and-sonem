@@ -13,10 +13,11 @@ from cmd.forage import forage_setup
 from cmd.spore import spore_setup
 from cmd.mushroom import mushroom_setup
 from cmd.cozy_sounds import cozy_sounds_setup
+from cmd.joke import joke_setup  # <-- Added this import!
 
 
 async def commands_setup(bot):
-    print("DEBUG: commands_setup called! Starting to load commands...")  # <-- Added debug print
+    print("DEBUG: commands_setup called! Starting to load commands...")
     await roll_setup(bot)
     await choose_setup(bot)
     await donut_setup(bot)
@@ -26,12 +27,13 @@ async def commands_setup(bot):
     await hangman_setup(bot)
     await flip_setup(bot)
     await hug_setup(bot)
-    print("DEBUG: About to call quote_image_setup...")  # <-- Added debug print
+    print("DEBUG: About to call quote_image_setup...")
     await quote_image_setup(bot)
-    print("DEBUG: quote_image_setup completed!")  # <-- Added debug print
+    print("DEBUG: quote_image_setup completed!")
     await fact_setup(bot)
     await forage_setup(bot)
     await spore_setup(bot)
     await mushroom_setup(bot)
     await cozy_sounds_setup(bot)
-    print("DEBUG: All commands loaded!")  # <-- Added debug print
+    await joke_setup(bot)  # <-- Added this call!
+    print("DEBUG: All commands loaded!")
