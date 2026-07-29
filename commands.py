@@ -75,3 +75,12 @@ async def commands_setup(bot):
     print("DEBUG: All commands loaded! Checking command tree...")
     commands_in_tree = [cmd.name for cmd in bot.tree.get_commands()]
     print(f"DEBUG: Commands in tree after setup: {commands_in_tree}")
+    
+    # Sync the command tree to Discord!
+    print("DEBUG: Syncing command tree to Discord...")
+    try:
+        synced = await bot.tree.sync()
+        print(f"DEBUG: Successfully synced {len(synced)} commands to Discord!")
+        print(f"DEBUG: Synced commands: {[cmd.name for cmd in synced]}")
+    except Exception as e:
+        print(f"DEBUG: Failed to sync command tree: {e}")
